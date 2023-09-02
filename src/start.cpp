@@ -1,72 +1,78 @@
-#include <unistd.h>
-#include "taskDefine/taskDefine.h"
+#include <fstream>  //note 文件
+#include <iostream> //note 标准IO，终端
+#include "libjsoncpp/json.h"
+#include "config.h"
+#include "controller/controller.h"
 #include "processCom/communication.h"
 
-Communication *communication;
-RobotData *pRobotData;
-ControllerCommand *pControllerCommand;
+extern Communication *communication;
+extern Controller *controller;
 
-void *thread_function(void *arg)
+bool getJsonValueFromFile(const std::string &filePath, Json::Value &root)
 {
-	// pthread_t thread_id = pthread_self();
-	// int policy;
-	// struct sched_param param;
-
-	// pthread_getschedparam(thread_id, &policy, &param);
-	// printf("线程: %lu, Policy: %s, Priority: %d\n", thread_id,
-	// 	   (policy == SCHED_FIFO) ? "SCHED_FIFO" : (policy == SCHED_RR)	 ? "SCHED_RR"
-	// 										   : (policy == SCHED_OTHER) ? "SCHED_OTHER"
-	// 																	 : "Unknown",
-	// 	   param.sched_priority);
-
-	int *a = (int *)arg;
-	while (1)
-	{
-		(*a)++;
-		usleep(1000 * 1000);
-	}
-
-	pthread_exit(NULL);
+    Json::Reader reader;
+    std::ifstream file;
+    file.open(filePath);
+    if (!file.is_open())
+    {
+        return false;
+    }
+    else
+    {
+        if (!reader.parse(file, root))
+        {
+            file.close();
+            return false;
+        }
+    }
+    file.close();
+    return true;
 }
-int robotRun()
+bool setJsonValueToFile(const std::string &filePath, Json::Value &root)
 {
-	bool connectStatus = false;
-	while (1)
-	{
-		connectStatus = communication->comRecvMessage();
-		if (connectStatus)
-		{
-			printf("q0: %f q1: %f q2: %f q3: %f q4: %f q5: %f q6: %f \n ", pRobotData->q[0], pRobotData->q[1],
-				   pRobotData->q[2], pRobotData->q[3], pRobotData->q[4], pRobotData->q[5], pRobotData->q[6]);
-		}
-		else
-		{
-		}
-		usleep(1000);
-	}
-	return 0;
+    Json::StyledWriter styleWriter;
+    std::ofstream file;
+    std::string str = styleWriter.write(root);
+    file.open(filePath);
+    if (!file.is_open())
+    {
+        return false;
+    }
+    file << str;
+    file.close();
+    return true;
 }
 
-int main(void)
+void initControllerParam()
 {
-	// 初始化进程
-	struct sched_param param = {40};
-	if (sched_setscheduler(getpid(), SCHED_FIFO, &param) != 0)
-	{
-		printf("主进程初始化失败\n");
-	};
-	sched_getparam(0, &param);
-	printf("主进程初始化成功，调度策略: %d, 调度优先级: %d\n", sched_getscheduler(0), param.sched_priority);
+    Json::Value root;
+    if (!getJsonValueFromFile(ControllerJsonPath, root))
+        std::cout << "readJson error!!" << std::endl;
 
-	int a = 0;
-	createTask(thread_function, &a, TaskName::task1);
+    root["ControllerID"] = std::string(__DATE__) + " " + __TIME__;
+    setJsonValueToFile(ControllerJsonPath, root);
 
-	// 进程通信
-	if (communication == nullptr)
-		communication = new Communication;
-	if (communication->createConnect((key_t)SM_ID, (key_t)MS_ID, pRobotData, pControllerCommand))
-		printf("通信信道建立成功\n");
-	communication->clearMsg();
+    controller->setJogSpeed(root["jogspeed"].asDouble());
+    controller->setRunSpeed(root["runSpeed"].asDouble());
+}
 
-	robotRun();
+void startController(Communication *&communication, Controller *&controller, key_t messageKey, key_t sharedMemorykey)
+{
+    RobotData *pRobotData;
+    ControllerCommand *pControllerCommand;
+    ControllerState *pControllerState;
+
+    // 进程通信
+    if (communication == nullptr)
+        communication = new Communication;
+    if (controller == nullptr)
+        controller = new Controller;
+
+    if (communication->createConnect(messageKey, sharedMemorykey, pRobotData, pControllerCommand, pControllerState))
+        std::cout << "通信信道建立成功: qId:" << std::hex << SM_ID << " mId:" << MS_ID << "\n";
+    communication->clearMsg();
+
+    controller->setpRobotData(pRobotData);
+    controller->setpControllerCommand(pControllerCommand);
+    controller->setpControllerState(pControllerState);
 }

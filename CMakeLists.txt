@@ -11,17 +11,20 @@ include_directories(
 
 
 add_executable(master 
+  src/main.cpp
   src/start.cpp
   src/taskDefine/taskDefine.cpp
   src/processCom/communication.cpp
+  src/keyboardIO/keyboardIO.cpp
+  src/controller/controller.cpp
 )
 target_include_directories(master SYSTEM PUBLIC
   ${my_include}
   include
+  src
   /home/wd/workSpace/WDcontroller/h
 )
 target_link_libraries(master 
   pthread
+  ${PROJECT_SOURCE_DIR}/lib/libjsoncpp.a
 )
-
-

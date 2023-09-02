@@ -1,11 +1,14 @@
+#pragma once
 #include <map>
 
-enum TaskName
+enum TaskName // note:枚举里的名字跟其他函数变量名字会冲突，加_区分
 {
     task1 = 1,
     task2 = 2,
-    task3 = 3
+    KeyboardIO_ = 3,
+    task4 = 3,
 };
+
 struct TaskProperties
 {
     int priority = 80;
@@ -18,7 +21,7 @@ bool createTask(TaskFun task, void *arg, TaskName taskName);
 bool createTask(TaskFun task, void *arg, int priority, int policy = SCHED_RR, bool isDetach = true);
 typedef std::map<TaskName, TaskProperties> TaskPropertiesDefineMap;
 
-/* 
+/*
 typedef struct
 {
     int detachstate;         // 线程的分离状态
@@ -30,5 +33,5 @@ typedef struct
     int stackaddr_set;       // 线程栈的设置
     void *stackaddr;         // 线程栈的启始位置
     size_t stacksize;        // 线程栈大小
-} pthread_attr_t; 
+} pthread_attr_t;
 */

@@ -5,7 +5,7 @@
 TaskPropertiesDefineMap taskPropertiesDefineList = {
     {TaskName::task1, {40 + 5, SCHED_RR, true}},
     {TaskName::task2, {40 + 10, SCHED_RR, true}},
-    {TaskName::task3, {40 + 50, SCHED_RR, true}}};
+    {TaskName::KeyboardIO_, {40 + 50, SCHED_RR, true}}};
 
 bool createTask(TaskFun task, void *arg, int priority, int policy, bool isDetach)
 {
@@ -31,5 +31,3 @@ bool createTask(TaskFun task, void *arg, TaskName taskName)
                       taskPropertiesDefineList[taskName].policy,
                       taskPropertiesDefineList[taskName].isDetach);
 }
-
-

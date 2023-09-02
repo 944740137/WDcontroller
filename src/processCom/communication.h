@@ -1,4 +1,5 @@
 /**进程通信头文件*/
+#pragma once
 #include <sys/msg.h>
 #include <sys/shm.h>
 #include "messageData.h"
@@ -17,7 +18,7 @@ private:
     const int maxTimeoutCount = 3;
 
     Message messageBuff;
-    SharedMemory *sharedMemoryBuff;
+    SharedMemory *sharedMemoryBuff = nullptr;
 
 public:
     Communication();
@@ -26,7 +27,8 @@ public:
     void operator=(const Communication &) = delete;
 
     bool checkConnect();
-    bool createConnect(key_t messageKey, key_t sharedMemorykey, RobotData *&robotData, ControllerCommand *&controllerCommand);
+    bool createConnect(key_t messageKey, key_t sharedMemorykey, RobotData *&robotData,
+                       ControllerCommand *&controllerCommand, ControllerState *&controllerState);
     bool comSendMessage();
     bool comRecvMessage();
     bool closeConnect();

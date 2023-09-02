@@ -20,7 +20,8 @@ bool Communication::checkConnect()
     }
     return this->isConnect;
 }
-bool Communication::createConnect(key_t messageKey, key_t sharedMemorykey, RobotData *&robotData, ControllerCommand *&controllerCommand)
+bool Communication::createConnect(key_t messageKey, key_t sharedMemorykey, RobotData *&robotData,
+                                  ControllerCommand *&controllerCommand, ControllerState *&controllerState)
 {
     void *shared_memory = nullptr;
     robotData = &(this->messageBuff.robotData);
@@ -34,7 +35,7 @@ bool Communication::createConnect(key_t messageKey, key_t sharedMemorykey, Robot
     else
         // printf("共享内存创建成功\n");
 
-    shared_memory = shmat(this->shm_id, NULL, 0);
+        shared_memory = shmat(this->shm_id, NULL, 0);
     if (shared_memory == nullptr)
     {
         printf("共享内存映射失败\n");
@@ -43,10 +44,12 @@ bool Communication::createConnect(key_t messageKey, key_t sharedMemorykey, Robot
     else
         // printf("共享内存映射成功\n");
 
-    this->sharedMemoryBuff = (struct SharedMemory *)shared_memory;
-    this->sharedMemoryBuff->slaveHeartbeat = 0;
+        this->sharedMemoryBuff = (struct SharedMemory *)shared_memory;
+    this->sharedMemoryBuff->masterHeartbeat = 0;
+    this->HeartBeatRecord = this->sharedMemoryBuff->slaveHeartbeat;
 
-    controllerCommand = &(this->sharedMemoryBuff->controllerData);
+    controllerCommand = &(this->sharedMemoryBuff->controllerCommand);
+    controllerState = &(this->sharedMemoryBuff->controllerState);
 
     this->msgid = msgget((key_t)messageKey, 0666 | IPC_CREAT);
     if (this->msgid == -1)
@@ -57,7 +60,7 @@ bool Communication::createConnect(key_t messageKey, key_t sharedMemorykey, Robot
     else
         // printf("消息队列创建成功\n");
 
-    return true;
+        return true;
 }
 bool Communication::comSendMessage()
 {
@@ -111,3 +114,4 @@ bool Communication::closeConnect()
 {
     return true;
 }
+
