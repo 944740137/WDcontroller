@@ -34,7 +34,7 @@ bool Controller::createRunTask(const std::vector<double> &q, TaskSpace plannerTa
 {
     if (pControllerState->controllerStatus != RunStatus::wait_)
         return false;
-    pControllerCommand->commandNum++;
+    pControllerCommand->planTaskNum++;
     pControllerCommand->plannerTaskSpace = plannerTaskSpace;
     for (int i = 0; i < q.size(); i++)
     {
@@ -42,21 +42,16 @@ bool Controller::createRunTask(const std::vector<double> &q, TaskSpace plannerTa
     }
     return true;
 }
+void Controller::stopRun()
+{
+}
 void Controller::setRunSpeed(double runSpeed)
 {
-    if (runSpeed > 1.0)
-        runSpeed = 1.0;
-    if (runSpeed < 0)
-        runSpeed = 0.01;
-    pControllerCommand->runSpeed = runSpeed;
+    pControllerCommand->runSpeed = std::max(0.01, std::min(1.0, runSpeed));
 }
 void Controller::setJogSpeed(double jogSpeed)
 {
-    if (jogSpeed > 1.0)
-        jogSpeed = 1.0;
-    if (jogSpeed < 0)
-        jogSpeed = 0.01;
-    pControllerCommand->jogSpeed = jogSpeed;
+    pControllerCommand->jogSpeed = std::max(0.01, std::min(1.0, jogSpeed));
 }
 double Controller::getRunSpeed()
 {

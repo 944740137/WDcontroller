@@ -25,6 +25,7 @@ public:
     const ControllerState *getpControllerState();
 
     bool createRunTask(const std::vector<double> &q, TaskSpace plannerTaskSpace);
+    void stopRun();
     void setRunSpeed(double runSpeed);
     void setJogSpeed(double jogSpeed);
     double getRunSpeed();
