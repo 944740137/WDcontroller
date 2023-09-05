@@ -3,6 +3,7 @@
 #include <iomanip>
 
 #include "config.h"
+#include "wdLog/log.h"
 #include "keyboardIO/keyboardIO.h"
 #include "taskDefine/taskDefine.h"
 #include "controller/controller.h"
@@ -12,13 +13,19 @@ Communication *communication;
 Controller *controller;
 
 extern void initControllerParam();
-extern void startController(Communication *&communication, Controller *&controller, key_t messageKey, key_t sharedMemorykey);
+extern void startIPC(Communication *&communication, Controller *&controller, key_t messageKey, key_t sharedMemorykey);
 
 int robotRun()
 {
+	int i = 0;
 	bool connectStatus = false;
 	while (1)
 	{
+		i++;
+		// wdlog_e("mytag","wdwd: %s %d %d\n", "qw", i, i);
+		// wdlog_i("mytag","wdwd: %s %d %d\n", "qw", i, i);
+		// wdlog_d("mytag","wdwd: %s %d %d\n", "qw", i, i);
+
 		connectStatus = communication->comRecvMessage();
 		if (connectStatus)
 		{
@@ -36,29 +43,35 @@ int robotRun()
 
 int main(void)
 {
-	std::cout.unsetf(std::ios::dec);
-	std::cout.setf(std::ios::showbase); // 显示十六，八进制前缀
 	std::cout << "编译日期:" << __DATE__ << "\n";
 	std::cout << "编译时刻:" << __TIME__ << std::endl;
+	// 启动日志系统
+	startLog();
 
-	// 初始化进程
+	// 初始化主进程
 	struct sched_param param = {MainThreadPolicy};
 	if (sched_setscheduler(getpid(), SCHED_FIFO, &param) != 0)
 	{
-		printf("主进程初始化失败\n");
+		wdlog_e("main","主进程初始化失败\n");
 	};
 	sched_getparam(0, &param);
-	printf("主进程初始化成功，调度策略: %d, 调度优先级: %d\n", sched_getscheduler(0), param.sched_priority);
+	wdlog_i("main","主进程初始化成功，调度策略: %d, 调度优先级: %d\n", sched_getscheduler(0), param.sched_priority);
 
-	// 创建进程通讯，初始化控制器
-	startController(communication, controller, (key_t)SM_ID, (key_t)MS_ID);
+	// 初始化
+	if (communication == nullptr)
+		communication = new Communication;
+	if (controller == nullptr)
+		controller = new Controller;
 
-	// 创建键盘事件
-	createTask(KeyboardIO, nullptr, TaskName::KeyboardIO_);
+	// 启动进程通信
+	startIPC(communication, controller, (key_t)SM_ID, (key_t)MS_ID);
 
-	// 加载参数
+	// 加载控制器参数
 	initControllerParam();
 
-	// 上下通信
+	// 启动键盘控制
+	createTask(KeyboardIO, nullptr, TaskName::KeyboardIO_);
+
+	// 1ms任务
 	robotRun();
 }

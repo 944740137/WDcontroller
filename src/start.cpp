@@ -4,7 +4,7 @@
 #include "config.h"
 #include "controller/controller.h"
 #include "processCom/communication.h"
-
+#include "wdLog/log.h"
 extern Communication *communication;
 extern Controller *controller;
 
@@ -56,20 +56,14 @@ void initControllerParam()
     controller->setRunSpeed(root["runSpeed"].asDouble());
 }
 
-void startController(Communication *&communication, Controller *&controller, key_t messageKey, key_t sharedMemorykey)
+void startIPC(Communication *&communication, Controller *&controller, key_t messageKey, key_t sharedMemorykey)
 {
     RobotData *pRobotData;
     ControllerCommand *pControllerCommand;
     ControllerState *pControllerState;
 
-    // 进程通信
-    if (communication == nullptr)
-        communication = new Communication;
-    if (controller == nullptr)
-        controller = new Controller;
-
     if (communication->createConnect(messageKey, sharedMemorykey, pRobotData, pControllerCommand, pControllerState))
-        std::cout << "通信信道建立成功: qId:" << std::hex << SM_ID << " mId:" << MS_ID << "\n";
+        wdlog_i("startIPC", "通信信道建立成功, 消息队列号: %x, 共享内存号: %x\n", SM_ID, MS_ID);
     communication->clearMsg();
 
     controller->setpRobotData(pRobotData);
