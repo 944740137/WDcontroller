@@ -1,6 +1,7 @@
 #pragma once
 
 #include "messageData.h"
+#include "robot/robot.h"
 #include <vector>
 class Controller
 {
@@ -9,25 +10,35 @@ private:
     ControllerCommand *pControllerCommand;
     ControllerState *pControllerState;
     unsigned int commandNum = 0;
+    double qMax[7] = {0.0};
+    double qMin[7] = {0.0};
+    double dqLimit[7] = {0.0};
+    double ddqLimit[7] = {0.0};
 
 public:
-    Controller();
+    int robotDof = 0;
+
     ~Controller();
+    Controller(int dof);
+
+    Controller() = delete;
     Controller(const Controller &) = delete;
     void operator=(const Controller &) = delete;
 
-    void setpRobotData(RobotData *pRobotData);
     void setpControllerCommand(ControllerCommand *pControllerCommand);
     void setpControllerState(ControllerState *pControllerState);
 
-    const RobotData *getpRobotData();
     const ControllerCommand *getpControllerCommand();
     const ControllerState *getpControllerState();
 
     bool createRunTask(const std::vector<double> &q, TaskSpace plannerTaskSpace);
     void stopRun();
-    void setRunSpeed(double runSpeed);
-    void setJogSpeed(double jogSpeed);
+    void setRunSpeed(double runSpeedRatio);
+    void setJogSpeed(double jogSpeedRatio);
     double getRunSpeed();
     double getJogSpeed();
+
+    bool changeControllerLaw(ControllerLawType type);
+    void setLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[]);
+    void getLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[]);
 };

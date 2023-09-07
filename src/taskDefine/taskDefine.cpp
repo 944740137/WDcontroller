@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include "taskDefine.h"
-
+#include "wdLog/log.h"
 TaskPropertiesDefineMap taskPropertiesDefineList = {
     {TaskName::task1, {40 + 5, SCHED_RR, true}},
     {TaskName::task2, {40 + 10, SCHED_RR, true}},
@@ -20,7 +20,7 @@ bool createTask(TaskFun task, void *arg, int priority, int policy, bool isDetach
         pthread_attr_destroy(&attr);
         return false;
     }
-    printf("创建任务: %lu 优先级: %d\n", thread_id, param.sched_priority);
+    wdlog_i("createTask", "创建任务: %lu 优先级: %d\n", thread_id, param.sched_priority);
     pthread_attr_destroy(&attr);
     return true;
 }

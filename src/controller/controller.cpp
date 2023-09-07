@@ -1,14 +1,13 @@
 #include "controller.h"
+#include "robot/robot.h"
+#include "wdLog/log.h"
 #include <iostream>
 Controller::~Controller()
 {
 }
-Controller::Controller()
+Controller::Controller(int dof)
 {
-}
-void Controller::setpRobotData(RobotData *pRobotData)
-{
-    this->pRobotData = pRobotData;
+    this->robotDof = dof;
 }
 void Controller::setpControllerCommand(ControllerCommand *pControllerCommand)
 {
@@ -17,10 +16,6 @@ void Controller::setpControllerCommand(ControllerCommand *pControllerCommand)
 void Controller::setpControllerState(ControllerState *pControllerState)
 {
     this->pControllerState = pControllerState;
-}
-const RobotData *Controller::getpRobotData()
-{
-    return pRobotData;
 }
 const ControllerCommand *Controller::getpControllerCommand()
 {
@@ -42,22 +37,52 @@ bool Controller::createRunTask(const std::vector<double> &q, TaskSpace plannerTa
     }
     return true;
 }
+bool Controller::changeControllerLaw(ControllerLawType type)
+{
+    if (pControllerState->controllerStatus != RunStatus::wait_)
+    {
+        wdlog_w("Controller", "机器人运动中，调整姿态失败\n");
+        return false;
+    }
+    pControllerCommand->controllerLawType_d = type;
+    return true;
+}
 void Controller::stopRun()
 {
 }
-void Controller::setRunSpeed(double runSpeed)
+void Controller::setRunSpeed(double runSpeedRatio)
 {
-    pControllerCommand->runSpeed = std::max(0.01, std::min(1.0, runSpeed));
+    this->pControllerCommand->runSpeed_d = std::max(0.01, std::min(1.0, runSpeedRatio));
 }
-void Controller::setJogSpeed(double jogSpeed)
+void Controller::setJogSpeed(double jogSpeedRatio)
 {
-    pControllerCommand->jogSpeed = std::max(0.01, std::min(1.0, jogSpeed));
+    this->pControllerCommand->jogSpeed_d = std::max(0.01, std::min(1.0, jogSpeedRatio));
 }
 double Controller::getRunSpeed()
 {
-    return pControllerCommand->runSpeed;
+    return this->pControllerCommand->runSpeed_d;
 }
 double Controller::getJogSpeed()
 {
-    return pControllerCommand->jogSpeed;
+    return this->pControllerCommand->jogSpeed_d;
+}
+void Controller::setLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[])
+{
+    for (int i = 0; i < this->robotDof; i++)
+    {
+        this->pControllerCommand->qMax[i] = qMax[i];
+        this->pControllerCommand->qMin[i] = qMin[i];
+        this->pControllerCommand->dqLimit[i] = dqLimit[i];
+        this->pControllerCommand->ddqLimit[i] = ddqLimit[i];
+    }
+}
+void Controller::getLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[])
+{
+    for (int i = 0; i < this->robotDof; i++)
+    {
+        qMax[i] = pControllerCommand->qMax[i];
+        qMin[i] = pControllerCommand->qMin[i];
+        dqLimit[i] = pControllerCommand->dqLimit[i];
+        ddqLimit[i] = pControllerCommand->ddqLimit[i];
+    }
 }

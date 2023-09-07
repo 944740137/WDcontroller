@@ -17,6 +17,7 @@ add_executable(master
   src/processCom/communication.cpp
   src/keyboardIO/keyboardIO.cpp
   src/controller/controller.cpp
+  src/robot/robot.cpp
   src/wdLog/log.cpp
 )
 target_include_directories(master SYSTEM PUBLIC

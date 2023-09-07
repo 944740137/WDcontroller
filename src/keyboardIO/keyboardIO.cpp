@@ -4,8 +4,10 @@
 #include <iostream>
 #include <vector>
 #include "controller/controller.h"
-
+#include "robot/robot.h"
+#include "wdLog/log.h"
 extern Controller *controller;
+extern Robot *robot;
 
 void *KeyboardIO(void *arg)
 {
@@ -37,8 +39,16 @@ void *KeyboardIO(void *arg)
 
             switch (c)
             {
+            case '1':
+                controller->changeControllerLaw(ControllerLawType::ComputedTorqueMethod_);
+                break;
+            case '2':
+                controller->changeControllerLaw(ControllerLawType::Backstepping_);
+                break;
+            case '3':
+                controller->changeControllerLaw(ControllerLawType::PD_);
+                break;
             case 'w':
-                // controller->powerOn();
                 controller->setRunSpeed(0.5);
                 controller->createRunTask(q1, TaskSpace::jointSpace);
                 break;
@@ -50,7 +60,7 @@ void *KeyboardIO(void *arg)
                 controller->createRunTask(q2, TaskSpace::jointSpace);
                 break;
             case 'd':
-
+                wdlog_d("wd", "controller % d,robot % d\n", controller->robotDof, robot->robotDof);
                 break;
             default:
                 break;

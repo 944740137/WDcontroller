@@ -7,13 +7,15 @@
 #include "keyboardIO/keyboardIO.h"
 #include "taskDefine/taskDefine.h"
 #include "controller/controller.h"
+#include "robot/robot.h"
 #include "processCom/communication.h"
 
 Communication *communication;
 Controller *controller;
+Robot *robot;
 
 extern void initControllerParam();
-extern void startIPC(Communication *&communication, Controller *&controller, key_t messageKey, key_t sharedMemorykey);
+extern void startIPC(Communication *&communication, Controller *&controller, Robot *&robot, key_t messageKey, key_t sharedMemorykey);
 
 int robotRun()
 {
@@ -21,10 +23,11 @@ int robotRun()
 	bool connectStatus = false;
 	while (1)
 	{
-		i++;
+		// i++;
 		// wdlog_e("mytag","wdwd: %s %d %d\n", "qw", i, i);
-		// wdlog_i("mytag","wdwd: %s %d %d\n", "qw", i, i);
+        // wdlog_w("mytag","wdwd: %s %d %d\n", "qw", i, i);
 		// wdlog_d("mytag","wdwd: %s %d %d\n", "qw", i, i);
+		// wdlog_i("mytag","wdwd: %s %d %d\n", "qw", i, i);
 
 		connectStatus = communication->comRecvMessage();
 		if (connectStatus)
@@ -45,6 +48,7 @@ int main(void)
 {
 	std::cout << "编译日期:" << __DATE__ << "\n";
 	std::cout << "编译时刻:" << __TIME__ << std::endl;
+
 	// 启动日志系统
 	startLog();
 
@@ -52,24 +56,19 @@ int main(void)
 	struct sched_param param = {MainThreadPolicy};
 	if (sched_setscheduler(getpid(), SCHED_FIFO, &param) != 0)
 	{
-		wdlog_e("main","主进程初始化失败\n");
+		wdlog_e("main", "-------------主进程初始化失败-------------\n");
 	};
 	sched_getparam(0, &param);
-	wdlog_i("main","主进程初始化成功，调度策略: %d, 调度优先级: %d\n", sched_getscheduler(0), param.sched_priority);
+	wdlog_i("main", "-------------主进程初始化成功，调度策略: %d, 调度优先级: %d-------------\n",
+			sched_getscheduler(0), param.sched_priority);
 
-	// 初始化
-	if (communication == nullptr)
-		communication = new Communication;
-	if (controller == nullptr)
-		controller = new Controller;
-
-	// 启动进程通信
-	startIPC(communication, controller, (key_t)SM_ID, (key_t)MS_ID);
+	// 启动进程通信，创建控制器，机器人
+	startIPC(communication, controller, robot, (key_t)SM_ID, (key_t)MS_ID);
 
 	// 加载控制器参数
 	initControllerParam();
 
-	// 启动键盘控制
+	// 启动键盘控制任务
 	createTask(KeyboardIO, nullptr, TaskName::KeyboardIO_);
 
 	// 1ms任务

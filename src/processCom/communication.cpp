@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "communication.h"
+#include "wdLog/log.h"
 Communication::~Communication()
 {
 }
@@ -29,7 +30,7 @@ bool Communication::createConnect(key_t messageKey, key_t sharedMemorykey, Robot
     this->shm_id = shmget((key_t)SM_ID, sizeof(struct SharedMemory), 0666 | IPC_CREAT);
     if (this->shm_id < 0)
     {
-        printf("第一次共享内存创建失败\n");
+        wdlog_e("processCom", "第一次共享内存创建失败\n");
         return false;
     }
     else
@@ -38,11 +39,11 @@ bool Communication::createConnect(key_t messageKey, key_t sharedMemorykey, Robot
         shared_memory = shmat(this->shm_id, NULL, 0);
     if (shared_memory == nullptr)
     {
-        printf("共享内存映射失败\n");
+        wdlog_e("processCom", "共享内存映射失败\n");
         return false;
     }
     else
-        // printf("共享内存映射成功\n");
+        // wdlog_i("processCom", "共享内存映射成功\n");
 
         this->sharedMemoryBuff = (struct SharedMemory *)shared_memory;
     this->sharedMemoryBuff->masterHeartbeat = 0;
@@ -54,11 +55,11 @@ bool Communication::createConnect(key_t messageKey, key_t sharedMemorykey, Robot
     this->msgid = msgget((key_t)messageKey, 0666 | IPC_CREAT);
     if (this->msgid == -1)
     {
-        printf("消息队列创建失败\n");
+        wdlog_e("processCom", "消息队列创建失败\n");
         return false;
     }
     else
-        // printf("消息队列创建成功\n");
+        // wdlog_i("processCom", "消息队列创建成功\n");
 
         return true;
 }
@@ -73,28 +74,28 @@ bool Communication::comRecvMessage()
         /*赋值*/
         if (!this->connectStatus)
         {
-            printf("从站连接\n");
+            wdlog_i("processCom", "从站连接\n");
             this->connectStatus = true;
         }
         if (msgrcv(this->msgid, (void *)&(this->messageBuff), sizeof(struct Message) - sizeof(long), 1, IPC_NOWAIT) == -1)
         {
-            // printf("读取失败\n");
+            // wdlog_e("processCom", "读取失败\n");
         }
         else
         {
-            // printf("读取成功\n");
+            // wdlog_i("processCom", "读取成功\n");
         }
-        // printf("从站在线\n");
+        // wdlog_i("processCom", "从站在线\n");
     }
     else
     {
         if (connectStatus)
         {
-            printf("从站断开\n");
+            wdlog_i("processCom", "从站断开\n");
             this->clearMsg();
             this->connectStatus = false;
         }
-        // printf("从站离线\n");
+        // wdlog_i("processCom", "从站离线\n");
     }
 
     this->sharedMemoryBuff->masterHeartbeat++;
@@ -102,16 +103,16 @@ bool Communication::comRecvMessage()
 }
 void Communication::clearMsg()
 {
-    printf("清空消息队列中");
+    int i = 0;
+    wdlog_i("processCom", "清空消息队列中\n");
     Message message;
     while (msgrcv(msgid, &message, sizeof(Message) - sizeof(long), 0, IPC_NOWAIT) != -1)
     {
-        printf(".");
+        i++;
     };
-    printf(" :清空消息队列完成！\n");
+    wdlog_i("processCom", "清空消息队列完成,清除%d个消息\n", i);
 }
 bool Communication::closeConnect()
 {
     return true;
 }
-

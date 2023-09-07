@@ -18,9 +18,10 @@ struct LevelTag
 };
 typedef std::map<Level, LevelTag> LevelTagMap;
 LevelTagMap levelTagMap = {
-    {Level::info, {INFO, "\033[0m\033[1;32m%s\033[0m"}},
-    {Level::debug, {DEBUG, "\033[0m\033[1;33m%s\033[0m"}},
-    {Level::error, {ERROR, "\033[0m\033[1;31m%s\033[0m"}},
+    {Level::info, {INFO, "32"}},
+    {Level::debug, {DEBUG, "34"}},
+    {Level::warn, {WARN, "33"}},
+    {Level::error, {ERROR, "31"}},
 };
 
 #define ZERO_ASCII 48
@@ -78,6 +79,7 @@ void checkLogSize(int len)
         sign++;
 
         file = fopen(completeLogName, "w");
+        setbuf(file, NULL);
         if (file == nullptr)
             printf("[logError] Failed to open file\n");
     }
@@ -107,7 +109,7 @@ void startLog()
     }
     snprintf(completeLogName, sizeof(completeLogName), "%s%s%d.%s", logDir, logName, 0, logSuffix);
     file = fopen(completeLogName, "a");
-
+    setbuf(file, NULL);
     closedir(dir);
 }
 
@@ -129,7 +131,7 @@ void logWrite(Level level, const char *tag, const char *format, ...)
 
     checkLogSize(length);
 
-    printf(levelTagMap[level].display, sbuf); // 控制台输出
+    printf("\033[0m\033[1;%sm%s\033[0m", levelTagMap[level].display, sbuf); // 控制台输出
 
     fprintf(file, "%s", sbuf);
 }
