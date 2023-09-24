@@ -6,6 +6,7 @@
 #include "robot/robot.h"
 #include "processCom/communication.h"
 #include "wdLog/log.h"
+
 extern Communication *communication;
 extern Controller *controller;
 extern Robot *robot;
@@ -48,7 +49,7 @@ bool setJsonValueToFile(const std::string &filePath, Json::Value &root)
 void initControllerParam()
 {
     Json::Value root;
-    
+
     // controller
     if (!getJsonValueFromFile(ControllerJsonPath, root))
         wdlog_e("initControllerParam", "readJson error!!\n");
@@ -68,6 +69,7 @@ void initControllerParam()
         dqLimit[i] = root["dqLimit"][i].asDouble();
         ddqLimit[i] = root["ddqLimit"][i].asDouble();
     }
+    controller->setRobotDof(root["Dof"].asInt());
     controller->setLimit(qMax, qMin, dqLimit, ddqLimit);
 }
 
@@ -83,10 +85,10 @@ void startIPC(Communication *&communication, Controller *&controller, Robot *&ro
         communication = new Communication;
 
     if (communication->createConnect(messageKey, sharedMemorykey, pRobotData, pControllerCommand, pControllerState))
-        wdlog_i("startIPC", "通信信道建立成功, 消息队列号: %x, 共享内存号: %x\n", SM_ID, MS_ID);
+        wdlog_i("ipcTask", "创建进程通信任务, 消息队列号: %x, 共享内存号: %x\n", SM_ID, MS_ID);
     else
     {
-        wdlog_e("startIPC", "通信信道建立失败\n");
+        wdlog_e("startIPC", "进程通任务建立失败，退出程序\n");
         exit(1);
     }
     communication->clearMsg();

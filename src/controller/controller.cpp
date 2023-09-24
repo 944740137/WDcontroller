@@ -41,7 +41,7 @@ bool Controller::changeControllerLaw(ControllerLawType type)
 {
     if (pControllerState->controllerStatus != RunStatus::wait_)
     {
-        wdlog_w("Controller", "机器人运动中，调整姿态失败\n");
+        wdlog_w("Controller", "机器人运动中，切换控制律失败\n");
         return false;
     }
     pControllerCommand->controllerLawType_d = type;
@@ -57,6 +57,10 @@ void Controller::setRunSpeed(double runSpeedRatio)
 void Controller::setJogSpeed(double jogSpeedRatio)
 {
     this->pControllerCommand->jogSpeed_d = std::max(0.01, std::min(1.0, jogSpeedRatio));
+}
+void Controller::setRobotDof(double Dof)
+{
+    this->robotDof = Dof;
 }
 double Controller::getRunSpeed()
 {

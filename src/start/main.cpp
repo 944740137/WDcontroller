@@ -3,12 +3,16 @@
 #include <iomanip>
 
 #include "config.h"
+
 #include "wdLog/log.h"
+#include "event/signalEvent.h"
 #include "keyboardIO/keyboardIO.h"
 #include "taskDefine/taskDefine.h"
+
+#include "processCom/communication.h"
 #include "controller/controller.h"
 #include "robot/robot.h"
-#include "processCom/communication.h"
+
 
 Communication *communication;
 Controller *controller;
@@ -25,7 +29,7 @@ int robotRun()
 	{
 		// i++;
 		// wdlog_e("mytag","wdwd: %s %d %d\n", "qw", i, i);
-        // wdlog_w("mytag","wdwd: %s %d %d\n", "qw", i, i);
+		// wdlog_w("mytag","wdwd: %s %d %d\n", "qw", i, i);
 		// wdlog_d("mytag","wdwd: %s %d %d\n", "qw", i, i);
 		// wdlog_i("mytag","wdwd: %s %d %d\n", "qw", i, i);
 
@@ -62,14 +66,23 @@ int main(void)
 	wdlog_i("main", "-------------主进程初始化成功，调度策略: %d, 调度优先级: %d-------------\n",
 			sched_getscheduler(0), param.sched_priority);
 
-	// 启动进程通信，创建控制器，机器人
+	// 启动进程通信任务，创建控制器和机器人
 	startIPC(communication, controller, robot, (key_t)SM_ID, (key_t)MS_ID);
 
 	// 加载控制器参数
 	initControllerParam();
 
 	// 启动键盘控制任务
-	createTask(KeyboardIO, nullptr, TaskName::KeyboardIO_);
+	createTask(KeyboardTask, nullptr, TaskName::KeyboardTask_);
+
+	// 启动示教器通信
+	// startTeachBox(communication, controller, robot, (key_t)SM_ID, (key_t)MS_ID);
+
+	// 启动事件监听（信号/定时器）
+	createTask(singalTask, nullptr, TaskName::singalTask_);
+
+	// 启动webserver
+	// createTask(KeyboardIO, nullptr, TaskName::KeyboardIO_);
 
 	// 1ms任务
 	robotRun();

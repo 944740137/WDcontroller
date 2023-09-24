@@ -9,10 +9,12 @@
 extern Controller *controller;
 extern Robot *robot;
 
-void *KeyboardIO(void *arg)
+void *KeyboardTask(void *arg)
 {
+    wdlog_i("KeyboardTask", "创建键盘控制任务\n");
+
     struct termios old_tio, new_tio;
-    tcgetattr(STDIN_FILENO, &old_tio); // 保存终端属性
+    tcgetattr(STDIN_FILENO, &old_tio); 
     // 设置终端为非规范模式，禁用回显和缓冲
     new_tio = old_tio;
     new_tio.c_lflag &= (~ICANON & ~ECHO);

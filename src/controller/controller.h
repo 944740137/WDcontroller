@@ -35,6 +35,7 @@ public:
     void stopRun();
     void setRunSpeed(double runSpeedRatio);
     void setJogSpeed(double jogSpeedRatio);
+    void setRobotDof(double Dof);
     double getRunSpeed();
     double getJogSpeed();
 

@@ -5,7 +5,9 @@
 TaskPropertiesDefineMap taskPropertiesDefineList = {
     {TaskName::task1, {40 + 5, SCHED_RR, true}},
     {TaskName::task2, {40 + 10, SCHED_RR, true}},
-    {TaskName::KeyboardIO_, {40 + 50, SCHED_RR, true}}};
+    {TaskName::singalTask_, {40 + 49, SCHED_RR, true}},
+    {TaskName::KeyboardTask_, {40 + 50, SCHED_RR, true}},
+    };
 
 bool createTask(TaskFun task, void *arg, int priority, int policy, bool isDetach)
 {
@@ -20,7 +22,7 @@ bool createTask(TaskFun task, void *arg, int priority, int policy, bool isDetach
         pthread_attr_destroy(&attr);
         return false;
     }
-    wdlog_i("createTask", "创建任务: %lu 优先级: %d\n", thread_id, param.sched_priority);
+    // wdlog_d("createTask", "创建任务: %lu 优先级: %d\n", thread_id, param.sched_priority);
     pthread_attr_destroy(&attr);
     return true;
 }

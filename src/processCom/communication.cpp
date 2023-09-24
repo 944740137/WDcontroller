@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "communication.h"
 #include "wdLog/log.h"
+
 Communication::~Communication()
 {
 }
@@ -43,9 +44,11 @@ bool Communication::createConnect(key_t messageKey, key_t sharedMemorykey, Robot
         return false;
     }
     else
+    {
         // wdlog_i("processCom", "共享内存映射成功\n");
+    }
 
-        this->sharedMemoryBuff = (struct SharedMemory *)shared_memory;
+    this->sharedMemoryBuff = (struct SharedMemory *)shared_memory;
     this->sharedMemoryBuff->masterHeartbeat = 0;
     this->HeartBeatRecord = this->sharedMemoryBuff->slaveHeartbeat;
 
@@ -104,13 +107,13 @@ bool Communication::comRecvMessage()
 void Communication::clearMsg()
 {
     int i = 0;
-    wdlog_i("processCom", "清空消息队列中\n");
+    // wdlog_d("processCom", "清空消息队列中\n");s
     Message message;
     while (msgrcv(msgid, &message, sizeof(Message) - sizeof(long), 0, IPC_NOWAIT) != -1)
     {
         i++;
     };
-    wdlog_i("processCom", "清空消息队列完成,清除%d个消息\n", i);
+    wdlog_i("processCom", "清空消息队列缓存完成,清除%d个消息\n", i);
 }
 bool Communication::closeConnect()
 {

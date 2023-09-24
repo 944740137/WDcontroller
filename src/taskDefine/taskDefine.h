@@ -4,9 +4,9 @@
 enum TaskName // note:枚举里的名字跟其他函数变量名字会冲突，加_区分
 {
     task1 = 1,
-    task2 = 2,
-    KeyboardIO_ = 3,
-    task4 = 3,
+    task2 = 1,
+    singalTask_ = 7,
+    KeyboardTask_ = 8
 };
 
 struct TaskProperties

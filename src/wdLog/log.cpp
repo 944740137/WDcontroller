@@ -19,7 +19,7 @@ struct LevelTag
 typedef std::map<Level, LevelTag> LevelTagMap;
 LevelTagMap levelTagMap = {
     {Level::info, {INFO, "32"}},
-    {Level::debug, {DEBUG, "34"}},
+    {Level::debug, {DEBUG, "36"}},
     {Level::warn, {WARN, "33"}},
     {Level::error, {ERROR, "31"}},
 };
