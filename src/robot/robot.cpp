@@ -14,3 +14,7 @@ const RobotData *Robot::getpRobotData()
 {
     return pRobotData;
 }
+void Robot::setRobotDof(double Dof)
+{
+    this->robotDof = Dof;
+}

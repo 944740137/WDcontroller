@@ -14,6 +14,7 @@ private:
     double qMin[7] = {0.0};
     double dqLimit[7] = {0.0};
     double ddqLimit[7] = {0.0};
+    double dddqLimit[7] = {0.0};
 
 public:
     int robotDof = 0;
@@ -40,6 +41,6 @@ public:
     double getJogSpeed();
 
     bool changeControllerLaw(ControllerLawType type);
-    void setLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[]);
-    void getLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[]);
+    void setLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[], double dddqLimit[]);
+    void getLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[], double dddqLimit[]);
 };

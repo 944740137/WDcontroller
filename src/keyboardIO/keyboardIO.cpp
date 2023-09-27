@@ -14,7 +14,7 @@ void *KeyboardTask(void *arg)
     wdlog_i("KeyboardTask", "创建键盘控制任务\n");
 
     struct termios old_tio, new_tio;
-    tcgetattr(STDIN_FILENO, &old_tio); 
+    tcgetattr(STDIN_FILENO, &old_tio);
     // 设置终端为非规范模式，禁用回显和缓冲
     new_tio = old_tio;
     new_tio.c_lflag &= (~ICANON & ~ECHO);
@@ -24,7 +24,8 @@ void *KeyboardTask(void *arg)
     char c = 0;
     char buff = 0;
     std::vector<double> q1 = {1, -0.5, -0.5, -2, 1, 1, 1};
-    std::vector<double> q2 = {0, 0, 0, -2, 0, 0, 0};
+    std::vector<double> q2 = {0, 0, 0, -1, 0, 0, 0};
+    std::vector<double> q3 = {0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2};
     while (1)
     {
         if (read(STDIN_FILENO, &c, 1) == 1)
@@ -51,18 +52,24 @@ void *KeyboardTask(void *arg)
                 controller->changeControllerLaw(ControllerLawType::PD_);
                 break;
             case 'w':
-                controller->setRunSpeed(0.5);
-                controller->createRunTask(q1, TaskSpace::jointSpace);
+                wdlog_d("wd", "controller % d,robot % d\n", controller->robotDof, robot->robotDof);
                 break;
             case 'a':
-
+                wdlog_d("wd", "目标 %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", q1[0], q1[1], q1[2], q1[3], q1[4], q1[5], q1[6]);
+                controller->setRunSpeed(0.6);
+                controller->createRunTask(q1, TaskSpace::jointSpace);
                 break;
             case 's':
-                controller->setRunSpeed(0.6);
-                controller->createRunTask(q2, TaskSpace::jointSpace);
+                controller->stopRun();
                 break;
             case 'd':
-                wdlog_d("wd", "controller % d,robot % d\n", controller->robotDof, robot->robotDof);
+                wdlog_d("wd", "目标 %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", q2[0], q2[1], q2[2], q2[3], q2[4], q2[5], q2[6]);
+                controller->setRunSpeed(0.5);
+                controller->createRunTask(q2, TaskSpace::jointSpace);
+            case 'f':
+                wdlog_d("wd", "目标 %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", q3[0], q3[1], q3[2], q3[3], q3[4], q3[5], q3[6]);
+                controller->setRunSpeed(0.7);
+                controller->createRunTask(q3, TaskSpace::jointSpace);
                 break;
             default:
                 break;

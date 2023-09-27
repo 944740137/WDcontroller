@@ -61,16 +61,20 @@ void initControllerParam()
     // robot
     if (!getJsonValueFromFile(RobotJsonPath, root))
         wdlog_e("initControllerParam", "readJson error!!\n");
-    double qMax[controller->robotDof], qMin[controller->robotDof], dqLimit[controller->robotDof], ddqLimit[controller->robotDof];
+    double qMax[controller->robotDof], qMin[controller->robotDof], dqLimit[controller->robotDof],
+        ddqLimit[controller->robotDof], dddqLimit[controller->robotDof];
     for (int i = 0; i < controller->robotDof; i++)
     {
         qMax[i] = root["qMax"][i].asDouble();
         qMin[i] = root["qMin"][i].asDouble();
         dqLimit[i] = root["dqLimit"][i].asDouble();
         ddqLimit[i] = root["ddqLimit"][i].asDouble();
+        dddqLimit[i] = root["dddqLimit"][i].asDouble();
     }
+
+    robot->setRobotDof(root["Dof"].asInt());
     controller->setRobotDof(root["Dof"].asInt());
-    controller->setLimit(qMax, qMin, dqLimit, ddqLimit);
+    controller->setLimit(qMax, qMin, dqLimit, ddqLimit, dddqLimit);
 }
 
 /*--------------------------------------------------startIPC--------------------------------------------------*/

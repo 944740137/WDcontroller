@@ -49,6 +49,12 @@ bool Controller::changeControllerLaw(ControllerLawType type)
 }
 void Controller::stopRun()
 {
+    if (pControllerState->controllerStatus != RunStatus::run_)
+    {
+        wdlog_d("Controller", "机器人未运动，停止失败\n");
+        return;
+    }
+    pControllerCommand->stopTaskNum++;
 }
 void Controller::setRunSpeed(double runSpeedRatio)
 {
@@ -70,7 +76,7 @@ double Controller::getJogSpeed()
 {
     return this->pControllerCommand->jogSpeed_d;
 }
-void Controller::setLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[])
+void Controller::setLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[], double dddqLimit[])
 {
     for (int i = 0; i < this->robotDof; i++)
     {
@@ -80,7 +86,7 @@ void Controller::setLimit(double qMax[], double qMin[], double dqLimit[], double
         this->pControllerCommand->ddqLimit[i] = ddqLimit[i];
     }
 }
-void Controller::getLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[])
+void Controller::getLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[], double dddqLimit[])
 {
     for (int i = 0; i < this->robotDof; i++)
     {
@@ -88,5 +94,6 @@ void Controller::getLimit(double qMax[], double qMin[], double dqLimit[], double
         qMin[i] = pControllerCommand->qMin[i];
         dqLimit[i] = pControllerCommand->dqLimit[i];
         ddqLimit[i] = pControllerCommand->ddqLimit[i];
+        ddqLimit[i] = pControllerCommand->dddqLimit[i];
     }
 }
