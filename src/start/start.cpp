@@ -6,6 +6,7 @@
 #include "robot/robot.h"
 #include "processCom/communication.h"
 #include "wdLog/log.h"
+#include "initParam.h"
 
 extern Communication *communication;
 extern Controller *controller;
@@ -46,35 +47,33 @@ bool setJsonValueToFile(const std::string &filePath, Json::Value &root)
     return true;
 }
 
+void initRobotParam(Robot *robot, std::string robotName)
+{
+    Json::Value root;
+    if (!getJsonValueFromFile(RobotJsonPath, root))
+        wdlog_e("initControllerParam", "readJson error!!\n");
+
+    std::vector<double> qMax, qMin, dqLimit, ddqLimit, dddqLimit;
+    for (int i = 0; i < robot->getRobotDof(); i++)
+    {
+        qMax.push_back(root[robotName]["qMax"][i].asDouble());
+        qMin.push_back(root[robotName]["qMin"][i].asDouble());
+        dqLimit.push_back(root[robotName]["dqLimit"][i].asDouble());
+        ddqLimit.push_back(root[robotName]["ddqLimit"][i].asDouble());
+        dddqLimit.push_back(root[robotName]["dddqLimit"][i].asDouble());
+    }
+    controller->setLimit(robot, qMax, qMin, dqLimit, ddqLimit, dddqLimit);
+}
+
 void initControllerParam()
 {
     Json::Value root;
-
-    // controller
     if (!getJsonValueFromFile(ControllerJsonPath, root))
         wdlog_e("initControllerParam", "readJson error!!\n");
     root["ControllerID"] = std::string(__DATE__) + " " + __TIME__;
     setJsonValueToFile(ControllerJsonPath, root);
     controller->setJogSpeed(root["jogspeed"].asDouble());
     controller->setRunSpeed(root["runSpeed"].asDouble());
-
-    // robot
-    if (!getJsonValueFromFile(RobotJsonPath, root))
-        wdlog_e("initControllerParam", "readJson error!!\n");
-    double qMax[controller->robotDof], qMin[controller->robotDof], dqLimit[controller->robotDof],
-        ddqLimit[controller->robotDof], dddqLimit[controller->robotDof];
-    for (int i = 0; i < controller->robotDof; i++)
-    {
-        qMax[i] = root["qMax"][i].asDouble();
-        qMin[i] = root["qMin"][i].asDouble();
-        dqLimit[i] = root["dqLimit"][i].asDouble();
-        ddqLimit[i] = root["ddqLimit"][i].asDouble();
-        dddqLimit[i] = root["dddqLimit"][i].asDouble();
-    }
-
-    robot->setRobotDof(root["Dof"].asInt());
-    controller->setRobotDof(root["Dof"].asInt());
-    controller->setLimit(qMax, qMin, dqLimit, ddqLimit, dddqLimit);
 }
 
 /*--------------------------------------------------startIPC--------------------------------------------------*/
@@ -98,7 +97,7 @@ void startIPC(Communication *&communication, Controller *&controller, Robot *&ro
     communication->clearMsg();
 
     if (controller == nullptr)
-        controller = new Controller(pControllerState->robotDof);
+        controller = new Controller();
     if (robot == nullptr)
         robot = new Robot(pControllerState->robotDof);
 

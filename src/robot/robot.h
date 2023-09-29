@@ -7,9 +7,9 @@ class Robot
 {
 private:
     RobotData *pRobotData = nullptr;
+    int robotDof = 0;
 
 public:
-    int robotDof = 0;
     ~Robot();
     Robot(int dof);
 
@@ -18,6 +18,7 @@ public:
     void operator=(const Robot &) = delete;
 
     void setRobotDof(double Dof);
+    int getRobotDof();
     void setpRobotData(RobotData *pRobotData);
     const RobotData *getpRobotData();
 };

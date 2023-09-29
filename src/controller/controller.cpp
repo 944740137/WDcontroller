@@ -2,12 +2,12 @@
 #include "robot/robot.h"
 #include "wdLog/log.h"
 #include <iostream>
+
 Controller::~Controller()
 {
 }
-Controller::Controller(int dof)
+Controller::Controller()
 {
-    this->robotDof = dof;
 }
 void Controller::setpControllerCommand(ControllerCommand *pControllerCommand)
 {
@@ -28,13 +28,23 @@ const ControllerState *Controller::getpControllerState()
 bool Controller::createRunTask(const std::vector<double> &q, TaskSpace plannerTaskSpace)
 {
     if (pControllerState->controllerStatus != RunStatus::wait_)
+    {
+        wdlog_w("Controller", "机器人运动中，创建运行任务失败\n");
         return false;
-    pControllerCommand->planTaskNum++;
+    }
+
+    if (pControllerCommand->runSign)
+    {
+        wdlog_w("Controller", "runSign信号未清，创建运行任务失败\n");
+        return false;
+    }
+
     pControllerCommand->plannerTaskSpace = plannerTaskSpace;
     for (int i = 0; i < q.size(); i++)
     {
         pControllerCommand->q_final[i] = q[i];
     }
+    pControllerCommand->runSign = true;
     return true;
 }
 bool Controller::changeControllerLaw(ControllerLawType type)
@@ -51,10 +61,15 @@ void Controller::stopRun()
 {
     if (pControllerState->controllerStatus != RunStatus::run_)
     {
-        wdlog_d("Controller", "机器人未运动，停止失败\n");
+        wdlog_w("Controller", "机器人未运动，停止失败\n");
         return;
     }
-    pControllerCommand->stopTaskNum++;
+    if (pControllerCommand->stopSign)
+    {
+        wdlog_w("Controller", "stopSign信号未清，创建运行任务失败\n");
+        return;
+    }
+    pControllerCommand->stopSign = true;
 }
 void Controller::setRunSpeed(double runSpeedRatio)
 {
@@ -64,10 +79,7 @@ void Controller::setJogSpeed(double jogSpeedRatio)
 {
     this->pControllerCommand->jogSpeed_d = std::max(0.01, std::min(1.0, jogSpeedRatio));
 }
-void Controller::setRobotDof(double Dof)
-{
-    this->robotDof = Dof;
-}
+
 double Controller::getRunSpeed()
 {
     return this->pControllerCommand->runSpeed_d;
@@ -76,19 +88,28 @@ double Controller::getJogSpeed()
 {
     return this->pControllerCommand->jogSpeed_d;
 }
-void Controller::setLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[], double dddqLimit[])
+void Controller::setLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
+                          std::vector<double> &ddqLimit, std::vector<double> &dddqLimit)
 {
-    for (int i = 0; i < this->robotDof; i++)
+    if (pControllerCommand->newLimit)
+    {
+        wdlog_w("Controller", "newLimit信号未清，限位设置失败\n");
+        return;
+    }
+    for (int i = 0; i < robot->getRobotDof(); i++)
     {
         this->pControllerCommand->qMax[i] = qMax[i];
         this->pControllerCommand->qMin[i] = qMin[i];
         this->pControllerCommand->dqLimit[i] = dqLimit[i];
         this->pControllerCommand->ddqLimit[i] = ddqLimit[i];
+        this->pControllerCommand->dddqLimit[i] = dddqLimit[i];
     }
+    pControllerCommand->newLimit = true;
 }
-void Controller::getLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[], double dddqLimit[])
+void Controller::getLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
+                          std::vector<double> &ddqLimit, std::vector<double> &dddqLimit)
 {
-    for (int i = 0; i < this->robotDof; i++)
+    for (int i = 0; i < robot->getRobotDof(); i++)
     {
         qMax[i] = pControllerCommand->qMax[i];
         qMin[i] = pControllerCommand->qMin[i];

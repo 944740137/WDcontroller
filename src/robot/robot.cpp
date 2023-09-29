@@ -3,6 +3,7 @@ Robot::Robot(int dof)
 {
     this->robotDof = dof;
 };
+
 Robot::~Robot(){
 
 };
@@ -17,4 +18,8 @@ const RobotData *Robot::getpRobotData()
 void Robot::setRobotDof(double Dof)
 {
     this->robotDof = Dof;
+}
+int Robot::getRobotDof()
+{
+    return this->robotDof;
 }

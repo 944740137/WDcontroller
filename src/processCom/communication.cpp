@@ -70,14 +70,16 @@ bool Communication::comSendMessage()
 {
     return this->connectStatus;
 }
-bool Communication::comRecvMessage()
+bool Communication::comRecvMessage(bool &isConnect)
 {
+    isConnect = false;
     if (checkConnect())
     {
         /*赋值*/
         if (!this->connectStatus)
         {
             wdlog_i("processCom", "从站连接\n");
+            isConnect = true;
             this->connectStatus = true;
         }
         if (msgrcv(this->msgid, (void *)&(this->messageBuff), sizeof(struct Message) - sizeof(long), 1, IPC_NOWAIT) == -1)

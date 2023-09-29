@@ -10,19 +10,11 @@ private:
     ControllerCommand *pControllerCommand;
     ControllerState *pControllerState;
     unsigned int commandNum = 0;
-    double qMax[7] = {0.0};
-    double qMin[7] = {0.0};
-    double dqLimit[7] = {0.0};
-    double ddqLimit[7] = {0.0};
-    double dddqLimit[7] = {0.0};
 
 public:
-    int robotDof = 0;
-
     ~Controller();
-    Controller(int dof);
+    Controller();
 
-    Controller() = delete;
     Controller(const Controller &) = delete;
     void operator=(const Controller &) = delete;
 
@@ -36,11 +28,12 @@ public:
     void stopRun();
     void setRunSpeed(double runSpeedRatio);
     void setJogSpeed(double jogSpeedRatio);
-    void setRobotDof(double Dof);
     double getRunSpeed();
     double getJogSpeed();
 
     bool changeControllerLaw(ControllerLawType type);
-    void setLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[], double dddqLimit[]);
-    void getLimit(double qMax[], double qMin[], double dqLimit[], double ddqLimit[], double dddqLimit[]);
+    void setLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
+                  std::vector<double> &ddqLimit, std::vector<double> &dddqLimit);
+    void getLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
+                  std::vector<double> &ddqLimit, std::vector<double> &dddqLimit);
 };

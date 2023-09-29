@@ -12,7 +12,7 @@
 #include "processCom/communication.h"
 #include "controller/controller.h"
 #include "robot/robot.h"
-
+#include "initParam.h"
 
 Communication *communication;
 Controller *controller;
@@ -27,17 +27,35 @@ int robotRun()
 	bool connectStatus = false;
 	while (1)
 	{
-		// i++;
+		i++;
 		// wdlog_e("mytag","wdwd: %s %d %d\n", "qw", i, i);
 		// wdlog_w("mytag","wdwd: %s %d %d\n", "qw", i, i);
 		// wdlog_d("mytag","wdwd: %s %d %d\n", "qw", i, i);
 		// wdlog_i("mytag","wdwd: %s %d %d\n", "qw", i, i);
+		bool isConnect = false;
+		connectStatus = communication->comRecvMessage(isConnect);
+		if (isConnect)
+		{
+			wdlog_i("robotRun", "robotName: %s robotDof: %d\n", controller->getpControllerState()->name,
+					controller->getpControllerState()->robotDof);
+			robot->setRobotDof(controller->getpControllerState()->robotDof);
+			initRobotParam(robot, controller->getpControllerState()->name);
+		}
 
-		connectStatus = communication->comRecvMessage();
 		if (connectStatus)
 		{
-			// printf("q0: %f q1: %f q2: %f q3: %f q4: %f q5: %f q6: %f ", controller->getpRobotData()->q[0], controller->getpRobotData()->q[1],
-			// 	   controller->getpRobotData()->q[2], controller->getpRobotData()->q[3], controller->getpRobotData()->q[4], controller->getpRobotData()->q[5], controller->getpRobotData()->q[6]);
+			if (i % 500 == 0)
+			{
+				// printf("q0: %.4f q1: %.4f q2: %.4f q3: %.4f q4: %.4f q5: %.4f q6: %.4f \n", robot->getpRobotData()->q[0],
+				// 	   robot->getpRobotData()->q[1], robot->getpRobotData()->q[2], robot->getpRobotData()->q[3],
+				// 	   robot->getpRobotData()->q[4], robot->getpRobotData()->q[5], robot->getpRobotData()->q[6]);
+				// printf("dq0: %.4f dq1: %.4f dq2: %.4f dq3: %.4f dq4: %.4f dq5: %.4f dq6: %.4f \n", robot->getpRobotData()->dq[0],
+				// 	   robot->getpRobotData()->dq[1], robot->getpRobotData()->dq[2], robot->getpRobotData()->dq[3],
+				// 	   robot->getpRobotData()->dq[4], robot->getpRobotData()->dq[5], robot->getpRobotData()->dq[6]);
+				// printf("tau: %.4f tau: %.4f tau: %.4f tau: %.4f tau: %.4f tau: %.4f tau: %.4f \n", robot->getpRobotData()->tau[0],
+				// 	   robot->getpRobotData()->tau[1], robot->getpRobotData()->tau[2], robot->getpRobotData()->tau[3],
+				// 	   robot->getpRobotData()->tau[4], robot->getpRobotData()->tau[5], robot->getpRobotData()->tau[6]);
+			}
 			// printf("Status: %d\n", controller->getpControllerState()->controllerStatus);
 		}
 		else
