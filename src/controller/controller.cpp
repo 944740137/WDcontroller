@@ -35,7 +35,7 @@ bool Controller::createRunTask(const std::vector<double> &q, TaskSpace plannerTa
 
     if (pControllerCommand->runSign)
     {
-        wdlog_w("Controller", "runSign信号未清，创建运行任务失败\n");
+        wdlog_e("Controller", "runSign信号未清，创建运行任务失败\n");
         return false;
     }
 
@@ -66,7 +66,7 @@ void Controller::stopRun()
     }
     if (pControllerCommand->stopSign)
     {
-        wdlog_w("Controller", "stopSign信号未清，创建运行任务失败\n");
+        wdlog_e("Controller", "stopSign信号未清，创建运行任务失败\n");
         return;
     }
     pControllerCommand->stopSign = true;
@@ -93,28 +93,25 @@ void Controller::setLimit(Robot *robot, std::vector<double> &qMax, std::vector<d
 {
     if (pControllerCommand->newLimit)
     {
-        wdlog_w("Controller", "newLimit信号未清，限位设置失败\n");
+        wdlog_e("Controller", "newLimit信号未清，限位设置失败\n");
         return;
     }
-    for (int i = 0; i < robot->getRobotDof(); i++)
-    {
-        this->pControllerCommand->qMax[i] = qMax[i];
-        this->pControllerCommand->qMin[i] = qMin[i];
-        this->pControllerCommand->dqLimit[i] = dqLimit[i];
-        this->pControllerCommand->ddqLimit[i] = ddqLimit[i];
-        this->pControllerCommand->dddqLimit[i] = dddqLimit[i];
-    }
+    std::copy(qMax.begin(), qMax.end(), this->pControllerCommand->qMax);
+    std::copy(qMin.begin(), qMin.end(), this->pControllerCommand->qMin);
+    std::copy(dqLimit.begin(), dqLimit.end(), this->pControllerCommand->dqLimit);
+    std::copy(ddqLimit.begin(), ddqLimit.end(), this->pControllerCommand->ddqLimit);
+    std::copy(dddqLimit.begin(), dddqLimit.end(), this->pControllerCommand->dddqLimit);
     pControllerCommand->newLimit = true;
 }
 void Controller::getLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
                           std::vector<double> &ddqLimit, std::vector<double> &dddqLimit)
 {
-    for (int i = 0; i < robot->getRobotDof(); i++)
-    {
-        qMax[i] = pControllerCommand->qMax[i];
-        qMin[i] = pControllerCommand->qMin[i];
-        dqLimit[i] = pControllerCommand->dqLimit[i];
-        ddqLimit[i] = pControllerCommand->ddqLimit[i];
-        ddqLimit[i] = pControllerCommand->dddqLimit[i];
-    }
+    // for (int i = 0; i < robot->getRobotDof(); i++)
+    // {
+    //     qMax[i] = pControllerCommand->qMax[i];
+    //     qMin[i] = pControllerCommand->qMin[i];
+    //     dqLimit[i] = pControllerCommand->dqLimit[i];
+    //     ddqLimit[i] = pControllerCommand->ddqLimit[i];
+    //     ddqLimit[i] = pControllerCommand->dddqLimit[i];
+    // }
 }
