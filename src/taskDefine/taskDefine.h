@@ -3,8 +3,7 @@
 
 enum TaskName // note:枚举里的名字跟其他函数变量名字会冲突，加_区分
 {
-    task1 = 1,
-    task2 = 1,
+    teachBoxComTask_ = 1,
     singalTask_ = 7,
     KeyboardTask_ = 8
 };

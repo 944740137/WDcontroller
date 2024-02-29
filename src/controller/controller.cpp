@@ -73,6 +73,7 @@ void Controller::stopRun()
 }
 void Controller::setRunSpeed(double runSpeedRatio)
 {
+
     this->pControllerCommand->runSpeed_d = std::max(0.01, std::min(1.0, runSpeedRatio));
 }
 void Controller::setJogSpeed(double jogSpeedRatio)

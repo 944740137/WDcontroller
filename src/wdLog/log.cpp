@@ -46,6 +46,7 @@ bool checkLogFile(struct dirent *entry, unsigned int fileNameLen, unsigned int f
     if (entry->d_name[fileNameLen] > '9' || entry->d_name[fileNameLen] < '0' || entry->d_name[fileNameLen + 1] != '.')
         return false;
     // char*字符串比较前N个字符
+
     return (strncmp(entry->d_name, logName, fileNameLen) == 0 &&
             strncmp(entry->d_name + fileNameLen + 2, logSuffix, fileSuffixLen) == 0);
 }

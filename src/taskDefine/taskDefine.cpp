@@ -3,8 +3,7 @@
 #include "taskDefine.h"
 #include "wdLog/log.h"
 TaskPropertiesDefineMap taskPropertiesDefineList = {
-    {TaskName::task1, {40 + 5, SCHED_RR, true}},
-    {TaskName::task2, {40 + 10, SCHED_RR, true}},
+    {TaskName::teachBoxComTask_, {40 + 5, SCHED_RR, true}},
     {TaskName::singalTask_, {40 + 49, SCHED_RR, true}},
     {TaskName::KeyboardTask_, {40 + 50, SCHED_RR, true}},
     };

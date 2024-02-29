@@ -25,6 +25,7 @@ add_executable(master
   src/robot/robot.cpp
   src/wdLog/log.cpp
   src/event/signalEvent.cpp
+  src/teachBoxCom/teachBoxCom.cpp
 )
 target_include_directories(master SYSTEM PUBLIC
   include
