@@ -10,8 +10,8 @@ private:
     int msgid = -1;
     int shm_id = -1;
 
-    bool isConnect = false;     // 当前连接
-    bool connectStatus = false; // 连接状态
+    bool isConnect = false;
+    CommunicationStatus communicationStatus = CommunicationStatus::connected; // 连接状态
     int timeoutCount = 0;
     int HeartBeatRecord = 0;
 
@@ -29,8 +29,8 @@ public:
     bool checkConnect();
     bool createConnect(key_t messageKey, key_t sharedMemorykey, RobotData *&robotData,
                        ControllerCommand *&controllerCommand, ControllerState *&controllerState);
-    bool comSendMessage();
-    bool comRecvMessage(bool &isConnect);
+    // bool comSendMessage();
+    CommunicationStatus comRecvMessage();
     bool closeConnect();
     void clearMsg();
 };

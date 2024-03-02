@@ -24,30 +24,22 @@ extern void startIPC(Communication *&communication, Controller *&controller, Rob
 
 int robotRun()
 {
-	bool isConnect = false;
-	if (communication->comRecvMessage(isConnect))
+	CommunicationStatus communicationStatus = communication->comRecvMessage();
+	if (communicationStatus == CommunicationStatus::successConnect)
 	{
-		if (isConnect)
-		{
-			wdlog_i("连接机器人", "robotName: %s robotDof: %d\n", controller->getpControllerState()->name,
-					controller->getpControllerState()->robotDof);
-			robot->setRobotDof(controller->getpControllerState()->robotDof);
-			initRobotParam(robot, controller->getpControllerState()->name);
-		}
-		// printf("q0: %.4f q1: %.4f q2: %.4f q3: %.4f q4: %.4f q5: %.4f q6: %.4f \n", robot->getpRobotData()->q[0],
-		// 	   robot->getpRobotData()->q[1], robot->getpRobotData()->q[2], robot->getpRobotData()->q[3],
-		// 	   robot->getpRobotData()->q[4], robot->getpRobotData()->q[5], robot->getpRobotData()->q[6]);
-		// printf("dq0: %.4f dq1: %.4f dq2: %.4f dq3: %.4f dq4: %.4f dq5: %.4f dq6: %.4f \n", robot->getpRobotData()->dq[0],
-		// 	   robot->getpRobotData()->dq[1], robot->getpRobotData()->dq[2], robot->getpRobotData()->dq[3],
-		// 	   robot->getpRobotData()->dq[4], robot->getpRobotData()->dq[5], robot->getpRobotData()->dq[6]);
-		// printf("tau: %.4f tau: %.4f tau: %.4f tau: %.4f tau: %.4f tau: %.4f tau: %.4f \n", robot->getpRobotData()->tau[0],
-		// 	   robot->getpRobotData()->tau[1], robot->getpRobotData()->tau[2], robot->getpRobotData()->tau[3],
-		// 	   robot->getpRobotData()->tau[4], robot->getpRobotData()->tau[5], robot->getpRobotData()->tau[6]);
+		wdlog_i("robotRun", "连接从站 robotName: %s robotDof: %d\n", controller->getpControllerState()->name,
+				controller->getpControllerState()->robotDof);
+		robot->setRobotDof(controller->getpControllerState()->robotDof);
+		initRobotParam(robot, controller->getpControllerState()->name);
+		controller->connect = true;
 	}
-	else
+
+	if (communicationStatus == CommunicationStatus::disconnected)
 	{
-		//
+		wdlog_i("robotRun", "从站断开\n");
+		controller->connect = false;
 	}
+	//
 	return 0;
 }
 

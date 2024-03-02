@@ -66,22 +66,23 @@ bool Communication::createConnect(key_t messageKey, key_t sharedMemorykey, Robot
 
         return true;
 }
-bool Communication::comSendMessage()
+// bool Communication::comSendMessage()
+// {
+// return this->connectStatus;
+// }
+CommunicationStatus Communication::comRecvMessage()
 {
-    return this->connectStatus;
-}
-bool Communication::comRecvMessage(bool &isConnect)
-{
-    isConnect = false;
     if (checkConnect())
     {
         /*赋值*/
-        if (!this->connectStatus)
+        if (this->communicationStatus == CommunicationStatus::noConnect)
         {
-            wdlog_i("processCom", "从站连接\n");
-            isConnect = true;
-            this->connectStatus = true;
+            // wdlog_i("processCom", "从站连接\n");
+            this->communicationStatus = CommunicationStatus::successConnect;
         }
+        else
+            this->communicationStatus = CommunicationStatus::connected;
+
         if (msgrcv(this->msgid, (void *)&(this->messageBuff), sizeof(struct Message) - sizeof(long), 1, IPC_NOWAIT) == -1)
         {
             // wdlog_e("processCom", "读取失败\n");
@@ -94,17 +95,19 @@ bool Communication::comRecvMessage(bool &isConnect)
     }
     else
     {
-        if (connectStatus)
+        if (this->communicationStatus == CommunicationStatus::connected)
         {
-            wdlog_i("processCom", "从站断开\n");
+            // wdlog_i("processCom", "从站断开\n");
             this->clearMsg();
-            this->connectStatus = false;
+            communicationStatus = CommunicationStatus::disconnected;
         }
+        else
+            this->communicationStatus = CommunicationStatus::noConnect;
         // wdlog_i("processCom", "从站离线\n");
     }
 
     this->sharedMemoryBuff->masterHeartbeat++;
-    return this->connectStatus;
+    return this->communicationStatus;
 }
 void Communication::clearMsg()
 {

@@ -47,6 +47,8 @@ bool Controller::createRunTask(const std::vector<double> &q, TaskSpace plannerTa
     pControllerCommand->runSign = true;
     return true;
 }
+
+//controller
 bool Controller::changeControllerLaw(ControllerLawType type)
 {
     if (pControllerState->controllerStatus != RunStatus::wait_)
@@ -57,6 +59,22 @@ bool Controller::changeControllerLaw(ControllerLawType type)
     pControllerCommand->controllerLawType_d = type;
     return true;
 }
+ControllerLawType Controller::getControllerLaw()
+{
+    return pControllerCommand->controllerLawType_d;
+}
+
+//planner
+bool Controller::changePlanner(Planner type)
+{
+    pControllerCommand->plannerType_d = type;
+    return true;
+}
+Planner Controller::getPlanner()
+{
+    return pControllerCommand->plannerType_d;
+}
+
 void Controller::stopRun()
 {
     if (pControllerState->controllerStatus != RunStatus::run_)
@@ -73,7 +91,6 @@ void Controller::stopRun()
 }
 void Controller::setRunSpeed(double runSpeedRatio)
 {
-
     this->pControllerCommand->runSpeed_d = std::max(0.01, std::min(1.0, runSpeedRatio));
 }
 void Controller::setJogSpeed(double jogSpeedRatio)

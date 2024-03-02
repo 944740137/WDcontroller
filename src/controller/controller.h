@@ -12,6 +12,8 @@ private:
     unsigned int commandNum = 0;
 
 public:
+    bool connect = false; // 主从
+
     ~Controller();
     Controller();
 
@@ -32,6 +34,11 @@ public:
     double getJogSpeed();
 
     bool changeControllerLaw(ControllerLawType type);
+    ControllerLawType getControllerLaw();
+
+    bool changePlanner(Planner type);
+    Planner getPlanner();
+
     void setLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
                   std::vector<double> &ddqLimit, std::vector<double> &dddqLimit);
     void getLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
