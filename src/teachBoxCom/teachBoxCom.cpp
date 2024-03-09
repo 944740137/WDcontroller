@@ -40,7 +40,7 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
     Json::Value sendObj;
     switch (tcpRecvMessage.commandNum)
     {
-
+        // 更换控制器
     case Request_ChangeController:
         str = tcpRecvMessage.buf;
         if (reader.parse(str, recvObj))
@@ -61,7 +61,7 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         }
         sendToTeachBox(Response_ChangeController, cfd, sendObj);
         break;
-
+        // 更换规划器
     case Request_ChangePlanner:
         str = tcpRecvMessage.buf;
         if (reader.parse(str, recvObj))
@@ -81,11 +81,47 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         }
         sendToTeachBox(Response_ChangePlanner, cfd, sendObj);
         break;
-
+        // 询问从站状态
     case Ask_SlaveConnect:
         // 没有buf
         sendObj["connect"] = controller->connect;
         sendToTeachBox(Response_SlaveConnect, cfd, sendObj);
+        break;
+        // 示教器开机初始化
+    case Start:
+        // 没有buf
+        sendObj["connect"] = controller->connect;
+        sendObj["planner"] = (int)controller->getPlanner();
+        sendObj["controlLaw"] = (int)controller->getControllerLaw();
+        sendObj["runSpeed"] = controller->getRunSpeed();
+        sendObj["jogspeed"] = controller->getJogSpeed();
+        sendToTeachBox(Response_Start, cfd, sendObj);
+        break;
+        // 速度更改
+    case Request_ChangeVel:
+        str = tcpRecvMessage.buf;
+        if (reader.parse(str, recvObj))
+            wdlog_d("cmdParsing", "Request_ChangeVel \n");
+        else
+            wdlog_e("cmdParsing", "Request_ChangeVel error\n");
+        controller->setRunSpeed(recvObj["runSpeed"].asInt());
+        controller->setJogSpeed(recvObj["jogspeed"].asInt());
+        sendObj["result"] = true;
+        sendToTeachBox(Response_ChangeVel, cfd, sendObj);
+        break;
+        // 回零
+    case Request_BackToZero:
+        // 没有buf
+        sendObj["result"] = true;
+        // controller->stopRun();
+        sendToTeachBox(Response_BackToZero, cfd, sendObj);
+        break;
+        // 停止
+    case Request_StopMove:
+        // 没有buf
+        sendObj["result"] = true;
+        controller->stopRun();
+        sendToTeachBox(Response_StopMove, cfd, sendObj);
         break;
     default:
         wdlog_e("cmdParsing", "parse error\n");

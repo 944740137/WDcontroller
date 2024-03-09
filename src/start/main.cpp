@@ -2,7 +2,7 @@
 #include <iostream> //note 标准IO，终端
 #include <iomanip>
 
-#include "config.h"
+
 
 #include "wdLog/log.h"
 #include "event/signalEvent.h"

@@ -28,10 +28,10 @@ public:
 
     bool createRunTask(const std::vector<double> &q, TaskSpace plannerTaskSpace);
     void stopRun();
-    void setRunSpeed(double runSpeedRatio);
-    void setJogSpeed(double jogSpeedRatio);
-    double getRunSpeed();
-    double getJogSpeed();
+    void setRunSpeed(int runSpeedRatio);
+    void setJogSpeed(int jogSpeedRatio);
+    int getRunSpeed();
+    int getJogSpeed();
 
     bool changeControllerLaw(ControllerLawType type);
     ControllerLawType getControllerLaw();

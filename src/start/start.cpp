@@ -1,6 +1,5 @@
 #include <fstream>  //note 文件
 #include <iostream> //note 标准IO，终端
-#include "libjsoncpp/json.h"
 #include "config.h"
 #include "controller/controller.h"
 #include "robot/robot.h"
@@ -47,6 +46,18 @@ bool setJsonValueToFile(const std::string &filePath, Json::Value &root)
     return true;
 }
 
+void setConfigParam(const std::string &filePath, Json::Value &newRoot)
+{
+    Json::Value root;
+    if (!getJsonValueFromFile(filePath, root))
+        wdlog_e("initControllerParam", "readJson error!!\n");
+    for (const auto &member : newRoot.getMemberNames())
+    {
+        root[member] = newRoot[member];
+    }
+    setJsonValueToFile(filePath, root);
+}
+
 void initRobotParam(Robot *robot, std::string robotName)
 {
     Json::Value root;
@@ -72,8 +83,8 @@ void initControllerParam()
         wdlog_e("initControllerParam", "readJson error!!\n");
     root["ControllerID"] = std::string(__DATE__) + " " + __TIME__;
     setJsonValueToFile(ControllerJsonPath, root);
-    controller->setJogSpeed(root["jogspeed"].asDouble());
-    controller->setRunSpeed(root["runSpeed"].asDouble());
+    controller->setJogSpeed(root["jogspeed"].asInt());
+    controller->setRunSpeed(root["runSpeed"].asInt());
 }
 
 /*--------------------------------------------------startIPC--------------------------------------------------*/

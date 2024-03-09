@@ -2,6 +2,7 @@
 #include "robot/robot.h"
 #include "wdLog/log.h"
 #include <iostream>
+#include "start/initParam.h"
 
 Controller::~Controller()
 {
@@ -48,7 +49,7 @@ bool Controller::createRunTask(const std::vector<double> &q, TaskSpace plannerTa
     return true;
 }
 
-//controller
+// controller
 bool Controller::changeControllerLaw(ControllerLawType type)
 {
     if (pControllerState->controllerStatus != RunStatus::wait_)
@@ -64,7 +65,7 @@ ControllerLawType Controller::getControllerLaw()
     return pControllerCommand->controllerLawType_d;
 }
 
-//planner
+// planner
 bool Controller::changePlanner(Planner type)
 {
     pControllerCommand->plannerType_d = type;
@@ -89,20 +90,26 @@ void Controller::stopRun()
     }
     pControllerCommand->stopSign = true;
 }
-void Controller::setRunSpeed(double runSpeedRatio)
+void Controller::setRunSpeed(int runSpeedRatio)
 {
-    this->pControllerCommand->runSpeed_d = std::max(0.01, std::min(1.0, runSpeedRatio));
+    this->pControllerCommand->runSpeed_d = std::max(1, std::min(100, runSpeedRatio));
+    Json::Value root;
+    root["runSpeed"] = this->pControllerCommand->runSpeed_d;
+    setConfigParam(ControllerJsonPath, root);
 }
-void Controller::setJogSpeed(double jogSpeedRatio)
+void Controller::setJogSpeed(int jogSpeedRatio)
 {
-    this->pControllerCommand->jogSpeed_d = std::max(0.01, std::min(1.0, jogSpeedRatio));
+    this->pControllerCommand->jogSpeed_d = std::max(1, std::min(100, jogSpeedRatio));
+    Json::Value root;
+    root["jogspeed"] = this->pControllerCommand->jogSpeed_d;
+    setConfigParam(ControllerJsonPath, root);
 }
 
-double Controller::getRunSpeed()
+int Controller::getRunSpeed()
 {
     return this->pControllerCommand->runSpeed_d;
 }
-double Controller::getJogSpeed()
+int Controller::getJogSpeed()
 {
     return this->pControllerCommand->jogSpeed_d;
 }

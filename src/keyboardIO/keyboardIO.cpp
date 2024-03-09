@@ -60,17 +60,17 @@ void *KeyboardTask(void *arg)
                 break;
             case 'a':
                 wdlog_d("wd", "目标 %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", q1[0], q1[1], q1[2], q1[3], q1[4], q1[5], q1[6]);
-                controller->setRunSpeed(0.6);
+                controller->setRunSpeed(50);
                 controller->createRunTask(q1, TaskSpace::jointSpace);
                 break;
             case 's':
                 wdlog_d("wd", "目标 %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", q0[0], q0[1], q0[2], q0[3], q0[4], q0[5], q0[6]);
-                controller->setRunSpeed(0.6);
+                controller->setRunSpeed(60);
                 controller->createRunTask(q0, TaskSpace::jointSpace);
                 break;
             case 'd':
                 wdlog_d("wd", "目标 %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", q2[0], q2[1], q2[2], q2[3], q2[4], q2[5], q2[6]);
-                controller->setRunSpeed(0.5);
+                controller->setRunSpeed(50);
                 controller->createRunTask(q2, TaskSpace::jointSpace);
                 // case 'f':
                 //     wdlog_d("wd", "目标 %.3f %.3f %.3f %.3f %.3f %.3f %.3f\n", q3[0], q3[1], q3[2], q3[3], q3[4], q3[5], q3[6]);
