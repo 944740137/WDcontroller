@@ -16,7 +16,7 @@ extern Robot *robot;
 struct TcpMessage
 {
     uint16_t commandNum;
-    char buf[256] = {0};
+    char buf[512] = {0};
 };
 
 void sendToTeachBox(const int &commandNum, const int &cfd, Json::Value &root)
@@ -38,6 +38,7 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
     std::string str;
 
     Json::Value sendObj;
+
     switch (tcpRecvMessage.commandNum)
     {
         // 更换控制器
@@ -123,8 +124,29 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         controller->stopRun();
         sendToTeachBox(Response_StopMove, cfd, sendObj);
         break;
+        // 询问位置
+    case Ask_Position:
+        // 没有buf
+        for (int i = 1; i <= robot->getRobotDof(); i++)
+        {
+            sendObj["q"][i - 1] = robot->getpRobotJointPosition(i);
+        }
+        for (int i = 1; i <= 6; i++)
+            sendObj["X"][i - 1] = robot->getpRobotCartesianPosition(i);
+        sendObj["result"] = true;
+
+        // wdlog_d("cmdParsing", "getpRobotJointPosition0 %f\n", sendObj["X"][0].asDouble());
+        // wdlog_d("cmdParsing", "getpRobotJointPosition1 %f\n", sendObj["X"][1].asDouble());
+        // wdlog_d("cmdParsing", "getpRobotJointPosition2 %f\n", sendObj["X"][2].asDouble());
+        // wdlog_d("cmdParsing", "getpRobotJointPosition3 %f\n", sendObj["X"][3].asDouble());
+        // wdlog_d("cmdParsing", "getpRobotJointPosition4 %f\n", sendObj["X"][4].asDouble());
+        // wdlog_d("cmdParsing", "getpRobotJointPosition5 %f\n", sendObj["X"][5].asDouble());
+        // wdlog_d("cmdParsing", "getpRobotJointPosition6 %f\n", sendObj["X"][6].asDouble());
+
+        sendToTeachBox(Response_Position, cfd, sendObj);
+        break;
     default:
-        wdlog_e("cmdParsing", "parse error\n");
+        wdlog_e("cmdParsing", "parse error commandNum %d\n", tcpRecvMessage.commandNum);
         break;
     }
 }
@@ -167,6 +189,7 @@ void teachBoxCommunication(const int &lfd)
 
     if (ret < 0 && errno == EAGAIN) // 没有数据可读
         return;
+
     cmdParsing(tcpRecvMessage, cfd);
     memset(tcpRecvMessage.buf, 0, sizeof(tcpRecvMessage.buf)); // 清除缓存
     // wdlog_i("teachBoxComTask", "num %d buf: %s  ret: %d strlen: %d \n", tcpRecvMessage.num, tcpRecvMessage.buf, ret, strlen(tcpRecvMessage.buf));

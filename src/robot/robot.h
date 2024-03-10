@@ -1,6 +1,7 @@
 #pragma once
 
 #include "messageData.h"
+
 #include <vector>
 
 class Robot
@@ -21,4 +22,6 @@ public:
     int getRobotDof();
     void setpRobotData(RobotData *pRobotData);
     const RobotData *getpRobotData();
+    double getpRobotCartesianPosition(int axis);
+    double getpRobotJointPosition(int axis);
 };
