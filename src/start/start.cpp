@@ -17,9 +17,7 @@ bool getJsonValueFromFile(const std::string &filePath, Json::Value &root)
     std::ifstream file;
     file.open(filePath);
     if (!file.is_open())
-    {
         return false;
-    }
     else
     {
         if (!reader.parse(file, root))
@@ -38,9 +36,8 @@ bool setJsonValueToFile(const std::string &filePath, Json::Value &root)
     std::string str = styleWriter.write(root);
     file.open(filePath);
     if (!file.is_open())
-    {
         return false;
-    }
+    
     file << str;
     file.close();
     return true;
@@ -50,11 +47,9 @@ void setConfigParam(const std::string &filePath, Json::Value &newRoot)
 {
     Json::Value root;
     if (!getJsonValueFromFile(filePath, root))
-        wdlog_e("initControllerParam", "readJson error!!\n");
+        wdlog_e("setConfigParam", "readJson error!!\n");
     for (const auto &member : newRoot.getMemberNames())
-    {
         root[member] = newRoot[member];
-    }
     setJsonValueToFile(filePath, root);
 }
 
@@ -62,9 +57,9 @@ void initRobotParam(Robot *robot, std::string robotName)
 {
     Json::Value root;
     if (!getJsonValueFromFile(RobotJsonPath, root))
-        wdlog_e("initControllerParam", "readJson error!!\n");
+        wdlog_e("initRobotParam", "readJson error!!\n");
 
-    std::vector<double> qMax, qMin, dqLimit, ddqLimit, dddqLimit;
+    std::vector<double> qMax, qMin, dqLimit, ddqLimit, dddqLimit, mechanicalZeroPosition, userZeroPosition;
     for (int i = 0; i < robot->getRobotDof(); i++)
     {
         qMax.push_back(root[robotName]["qMax"][i].asDouble());
@@ -72,8 +67,12 @@ void initRobotParam(Robot *robot, std::string robotName)
         dqLimit.push_back(root[robotName]["dqLimit"][i].asDouble());
         ddqLimit.push_back(root[robotName]["ddqLimit"][i].asDouble());
         dddqLimit.push_back(root[robotName]["dddqLimit"][i].asDouble());
+        mechanicalZeroPosition.push_back(root[robotName]["mechanicalZeroPosition"][i].asDouble());
+        userZeroPosition.push_back(root[robotName]["userZeroPosition"][i].asDouble());
     }
-    controller->setLimit(robot, qMax, qMin, dqLimit, ddqLimit, dddqLimit);
+    robot->setUserZeroPosition(std::move(userZeroPosition));
+    robot->setMechanicalZeroPosition(std::move(mechanicalZeroPosition));
+    controller->setUserJointLimit(robot, qMax, qMin, dqLimit, ddqLimit, dddqLimit);
 }
 
 void initControllerParam()

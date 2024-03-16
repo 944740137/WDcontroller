@@ -112,37 +112,49 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         break;
         // 回零
     case Request_BackToZero:
-        // 没有buf
+        // str = tcpRecvMessage.buf;
         sendObj["result"] = true;
-        // controller->stopRun();
+        controller->backToZero(robot);
         sendToTeachBox(Response_BackToZero, cfd, sendObj);
+        break;
+        // 运动任务
+    case Request_CreateRunTask:
+        str = tcpRecvMessage.buf;
+        if (reader.parse(str, recvObj))
+            wdlog_d("cmdParsing", "Request_CreateRunTask \n");
+        else
+            wdlog_e("cmdParsing", "Request_CreateRunTask error\n");
+        if (recvObj["planType"].asInt() == 0)
+        {
+            wdlog_e("cmdParsing", "Request_CreateRunTask \n");
+            std::vector<double> q1 = {recvObj["q_d"][0].asDouble(), recvObj["q_d"][1].asDouble(), recvObj["q_d"][2].asDouble(),
+                                      recvObj["q_d"][3].asDouble(), recvObj["q_d"][4].asDouble(), recvObj["q_d"][5].asDouble(),
+                                      recvObj["q_d"][6].asDouble()};
+            if (controller->createRunTask(robot, q1, TaskSpace::jointSpace))
+                sendObj["result"] = true;
+            else
+                sendObj["result"] = false;
+        }
+        if (recvObj["planType"].asInt() == 1)
+        {
+        }
+        sendToTeachBox(Response_CreateRunTask, cfd, sendObj);
         break;
         // 停止
     case Request_StopMove:
-        // 没有buf
+        // str = tcpRecvMessage.buf;
         sendObj["result"] = true;
         controller->stopRun();
         sendToTeachBox(Response_StopMove, cfd, sendObj);
         break;
         // 询问位置
     case Ask_Position:
-        // 没有buf
+        // str = tcpRecvMessage.buf;
         for (int i = 1; i <= robot->getRobotDof(); i++)
-        {
-            sendObj["q"][i - 1] = robot->getpRobotJointPosition(i);
-        }
+            sendObj["q"][i - 1] = robot->getpRobotJointPosition(i, false);
         for (int i = 1; i <= 6; i++)
             sendObj["X"][i - 1] = robot->getpRobotCartesianPosition(i);
         sendObj["result"] = true;
-
-        // wdlog_d("cmdParsing", "getpRobotJointPosition0 %f\n", sendObj["X"][0].asDouble());
-        // wdlog_d("cmdParsing", "getpRobotJointPosition1 %f\n", sendObj["X"][1].asDouble());
-        // wdlog_d("cmdParsing", "getpRobotJointPosition2 %f\n", sendObj["X"][2].asDouble());
-        // wdlog_d("cmdParsing", "getpRobotJointPosition3 %f\n", sendObj["X"][3].asDouble());
-        // wdlog_d("cmdParsing", "getpRobotJointPosition4 %f\n", sendObj["X"][4].asDouble());
-        // wdlog_d("cmdParsing", "getpRobotJointPosition5 %f\n", sendObj["X"][5].asDouble());
-        // wdlog_d("cmdParsing", "getpRobotJointPosition6 %f\n", sendObj["X"][6].asDouble());
-
         sendToTeachBox(Response_Position, cfd, sendObj);
         break;
     default:

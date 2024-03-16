@@ -1,8 +1,8 @@
 #include "controller.h"
-#include "robot/robot.h"
 #include "wdLog/log.h"
 #include <iostream>
 #include "start/initParam.h"
+#include "math.h"
 
 Controller::~Controller()
 {
@@ -26,24 +26,30 @@ const ControllerState *Controller::getpControllerState()
 {
     return pControllerState;
 }
-bool Controller::createRunTask(const std::vector<double> &q, TaskSpace plannerTaskSpace)
+bool Controller::createRunTask(Robot *robot, const std::vector<double> &q, TaskSpace plannerTaskSpace)
 {
     if (pControllerState->controllerStatus != RunStatus::wait_)
     {
         wdlog_w("Controller", "机器人运动中，创建运行任务失败\n");
         return false;
     }
-
     if (pControllerCommand->runSign)
     {
         wdlog_e("Controller", "runSign信号未清，创建运行任务失败\n");
         return false;
     }
 
+    if (!this->checkUserJointLimit(robot, q))
+    {
+        wdlog_e("Controller", "目标位置超限:%f, %f, %f,%f,%f,%f,%f\n",
+                q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
+        return false;
+    }
+
     pControllerCommand->plannerTaskSpace = plannerTaskSpace;
     for (int i = 0; i < q.size(); i++)
     {
-        pControllerCommand->q_final[i] = q[i];
+        pControllerCommand->q_final[i] = q[i] + robot->getUserZeroPosition()[i];
     }
     pControllerCommand->runSign = true;
     return true;
@@ -90,6 +96,8 @@ void Controller::stopRun()
     }
     pControllerCommand->stopSign = true;
 }
+
+// speed
 void Controller::setRunSpeed(int runSpeedRatio)
 {
     this->pControllerCommand->runSpeed_d = std::max(1, std::min(100, runSpeedRatio));
@@ -104,7 +112,6 @@ void Controller::setJogSpeed(int jogSpeedRatio)
     root["jogspeed"] = this->pControllerCommand->jogSpeed_d;
     setConfigParam(ControllerJsonPath, root);
 }
-
 int Controller::getRunSpeed()
 {
     return this->pControllerCommand->runSpeed_d;
@@ -113,7 +120,9 @@ int Controller::getJogSpeed()
 {
     return this->pControllerCommand->jogSpeed_d;
 }
-void Controller::setLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
+
+// limit
+void Controller::setUserJointLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
                           std::vector<double> &ddqLimit, std::vector<double> &dddqLimit)
 {
     if (pControllerCommand->newLimit)
@@ -128,7 +137,7 @@ void Controller::setLimit(Robot *robot, std::vector<double> &qMax, std::vector<d
     std::copy(dddqLimit.begin(), dddqLimit.end(), this->pControllerCommand->dddqLimit);
     pControllerCommand->newLimit = true;
 }
-void Controller::getLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
+void Controller::getUserJointLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
                           std::vector<double> &ddqLimit, std::vector<double> &dddqLimit)
 {
     // for (int i = 0; i < robot->getRobotDof(); i++)
@@ -139,4 +148,29 @@ void Controller::getLimit(Robot *robot, std::vector<double> &qMax, std::vector<d
     //     ddqLimit[i] = pControllerCommand->ddqLimit[i];
     //     ddqLimit[i] = pControllerCommand->dddqLimit[i];
     // }
+}
+bool Controller::checkUserJointLimit(Robot *robot, const std::vector<double> &q_d)
+{
+    for (int i = 0; i < q_d.size(); i++)
+    {
+        if (q_d[i] < pControllerCommand->qMin[i] || q_d[i] > pControllerCommand->qMax[i])
+            return false;
+    }
+    return true;
+}
+
+// zero
+bool Controller::setZero(Robot *robot)
+{
+    if (pControllerState->controllerStatus != RunStatus::wait_)
+    {
+        wdlog_w("Controller", "机器人运动中，无法设置零点\n");
+        return false;
+    }
+    return true;
+}
+bool Controller::backToZero(Robot *robot)
+{
+    std::vector<double> q(7, 0.0);
+    return this->createRunTask(robot, q, TaskSpace::jointSpace);
 }

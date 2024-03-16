@@ -16,31 +16,34 @@ public:
 
     ~Controller();
     Controller();
-
     Controller(const Controller &) = delete;
     void operator=(const Controller &) = delete;
 
+    // init
     void setpControllerCommand(ControllerCommand *pControllerCommand);
     void setpControllerState(ControllerState *pControllerState);
-
     const ControllerCommand *getpControllerCommand();
     const ControllerState *getpControllerState();
-
-    bool createRunTask(const std::vector<double> &q, TaskSpace plannerTaskSpace);
+    // task
+    bool createRunTask(Robot *robot, const std::vector<double> &q, TaskSpace plannerTaskSpace);
     void stopRun();
+    // vel
     void setRunSpeed(int runSpeedRatio);
     void setJogSpeed(int jogSpeedRatio);
     int getRunSpeed();
     int getJogSpeed();
-
+    // 规控
     bool changeControllerLaw(ControllerLawType type);
     ControllerLawType getControllerLaw();
-
     bool changePlanner(Planner type);
     Planner getPlanner();
-
-    void setLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
+    // 限位
+    void setUserJointLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
                   std::vector<double> &ddqLimit, std::vector<double> &dddqLimit);
-    void getLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
+    void getUserJointLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
                   std::vector<double> &ddqLimit, std::vector<double> &dddqLimit);
+    bool checkUserJointLimit(Robot *robot, const std::vector<double> &q_d);
+    // zero
+    bool setZero(Robot *robot);
+    bool backToZero(Robot *robot);
 };
