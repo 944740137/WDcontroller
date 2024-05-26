@@ -69,7 +69,7 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
             wdlog_d("cmdParsing", "Request_Planner %d\n", recvObj["planner"].asInt());
         else
             wdlog_e("cmdParsing", "Request_Planner error\n");
-        if (controller->changePlanner((Planner)recvObj["planner"].asInt()))
+        if (controller->changePlanner((PlannerType)recvObj["planner"].asInt()))
         {
             sendObj["planner"] = (int)controller->getPlanner();
             sendObj["result"] = true;
@@ -126,7 +126,6 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
             wdlog_e("cmdParsing", "Request_CreateRunTask error\n");
         if (recvObj["planType"].asInt() == 0)
         {
-            wdlog_e("cmdParsing", "Request_CreateRunTask \n");
             std::vector<double> q1 = {recvObj["q_d"][0].asDouble(), recvObj["q_d"][1].asDouble(), recvObj["q_d"][2].asDouble(),
                                       recvObj["q_d"][3].asDouble(), recvObj["q_d"][4].asDouble(), recvObj["q_d"][5].asDouble(),
                                       recvObj["q_d"][6].asDouble()};
@@ -137,6 +136,12 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         }
         if (recvObj["planType"].asInt() == 1)
         {
+            std::vector<double> x = {recvObj["x_d"][0].asDouble(), recvObj["x_d"][1].asDouble(), recvObj["x_d"][2].asDouble(),
+                                      recvObj["x_d"][3].asDouble(), recvObj["x_d"][4].asDouble(), recvObj["x_d"][5].asDouble()};
+            // if (controller->createRunTask(robot, x, TaskSpace::cartesianSpace))
+            //     sendObj["result"] = true;
+            // else
+            //     sendObj["result"] = false;
         }
         sendToTeachBox(Response_CreateRunTask, cfd, sendObj);
         break;

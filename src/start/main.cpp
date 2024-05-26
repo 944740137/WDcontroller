@@ -75,7 +75,7 @@ int main(void)
 	createTask(teachBoxComTask, nullptr, TaskName::teachBoxComTask_);
 
 	// 启动webserver
-	// createTask(KeyboardIO, nullptr, TaskName::KeyboardIO_);
+	// createTask(KeyboardIO, nullptr, TaskName::);
 
 	// 1ms任务
 	while (1)
@@ -83,6 +83,7 @@ int main(void)
 		robotRun();
 		usleep(1000);
 	}
+	wdlog_i("main", "正常退出程序");
 
 	// wdlog_e("mytag","wdwd: %s %d %d\n", "qw", i, i);
 	// wdlog_w("mytag","wdwd: %s %d %d\n", "qw", i, i);

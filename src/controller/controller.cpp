@@ -72,12 +72,17 @@ ControllerLawType Controller::getControllerLaw()
 }
 
 // planner
-bool Controller::changePlanner(Planner type)
+bool Controller::changePlanner(PlannerType type)
 {
+    if (pControllerState->controllerStatus != RunStatus::wait_)
+    {
+        wdlog_w("Controller", "机器人运动中，切换规划器失败\n");
+        return false;
+    }
     pControllerCommand->plannerType_d = type;
     return true;
 }
-Planner Controller::getPlanner()
+PlannerType Controller::getPlanner()
 {
     return pControllerCommand->plannerType_d;
 }
@@ -123,7 +128,7 @@ int Controller::getJogSpeed()
 
 // limit
 void Controller::setUserJointLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
-                          std::vector<double> &ddqLimit, std::vector<double> &dddqLimit)
+                                   std::vector<double> &ddqLimit, std::vector<double> &dddqLimit)
 {
     if (pControllerCommand->newLimit)
     {
@@ -138,7 +143,7 @@ void Controller::setUserJointLimit(Robot *robot, std::vector<double> &qMax, std:
     pControllerCommand->newLimit = true;
 }
 void Controller::getUserJointLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
-                          std::vector<double> &ddqLimit, std::vector<double> &dddqLimit)
+                                   std::vector<double> &ddqLimit, std::vector<double> &dddqLimit)
 {
     // for (int i = 0; i < robot->getRobotDof(); i++)
     // {

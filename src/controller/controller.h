@@ -24,19 +24,23 @@ public:
     void setpControllerState(ControllerState *pControllerState);
     const ControllerCommand *getpControllerCommand();
     const ControllerState *getpControllerState();
+    
     // task
     bool createRunTask(Robot *robot, const std::vector<double> &q, TaskSpace plannerTaskSpace);
     void stopRun();
+
     // vel
     void setRunSpeed(int runSpeedRatio);
     void setJogSpeed(int jogSpeedRatio);
     int getRunSpeed();
     int getJogSpeed();
+
     // 规控
     bool changeControllerLaw(ControllerLawType type);
     ControllerLawType getControllerLaw();
-    bool changePlanner(Planner type);
-    Planner getPlanner();
+    bool changePlanner(PlannerType type);
+    PlannerType getPlanner();
+
     // 限位
     void setUserJointLimit(Robot *robot, std::vector<double> &qMax, std::vector<double> &qMin, std::vector<double> &dqLimit,
                   std::vector<double> &ddqLimit, std::vector<double> &dddqLimit);
