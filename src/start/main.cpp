@@ -31,13 +31,13 @@ int robotRun()
 		initRobotParam(robot, controller->getpControllerState()->name);
 		controller->connect = true;
 	}
-
 	if (communicationStatus == CommunicationStatus::disconnected)
 	{
 		wdlog_i("robotRun", "从站断开\n");
 		controller->connect = false;
 	}
 	//
+	controller->jogCheckTimeOut();
 	return 0;
 }
 

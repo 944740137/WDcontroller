@@ -137,7 +137,7 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         if (recvObj["planType"].asInt() == 1)
         {
             std::vector<double> x = {recvObj["x_d"][0].asDouble(), recvObj["x_d"][1].asDouble(), recvObj["x_d"][2].asDouble(),
-                                      recvObj["x_d"][3].asDouble(), recvObj["x_d"][4].asDouble(), recvObj["x_d"][5].asDouble()};
+                                     recvObj["x_d"][3].asDouble(), recvObj["x_d"][4].asDouble(), recvObj["x_d"][5].asDouble()};
             // if (controller->createRunTask(robot, x, TaskSpace::cartesianSpace))
             //     sendObj["result"] = true;
             // else
@@ -161,6 +161,29 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
             sendObj["X"][i - 1] = robot->getpRobotCartesianPosition(i);
         sendObj["result"] = true;
         sendToTeachBox(Response_Position, cfd, sendObj);
+        break;
+        // 点动开始
+    case Request_JogMove:
+        str = tcpRecvMessage.buf;
+        if (reader.parse(str, recvObj))
+            wdlog_d("cmdParsing", "Request_JogMove \n");
+        else
+            wdlog_e("cmdParsing", "Request_JogMove error\n");
+        controller->startJogMove(recvObj["joint"].asInt(), recvObj["dir"].asInt());
+        sendObj["result"] = true;
+        sendToTeachBox(Response_JogMove, cfd, sendObj);
+        break;
+        // 点动结束
+    case Request_JogStop:
+        // str = tcpRecvMessage.buf;
+        controller->stopJogMove();
+        sendObj["result"] = true;
+        sendToTeachBox(Response_JogStop, cfd, sendObj);
+        break;
+        // 点动结束
+    case Request_JogCycleMove:
+        // str = tcpRecvMessage.buf;
+        controller->resetJogTimeOut();
         break;
     default:
         wdlog_e("cmdParsing", "parse error commandNum %d\n", tcpRecvMessage.commandNum);
@@ -243,7 +266,7 @@ void *teachBoxComTask(void *arg)
     while (1)
     {
         teachBoxCommunication(lfd);
-        usleep(5 * 1000);
+        usleep(1 * 1000);
     }
     return nullptr;
 }

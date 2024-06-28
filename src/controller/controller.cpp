@@ -26,6 +26,7 @@ const ControllerState *Controller::getpControllerState()
 {
     return pControllerState;
 }
+
 bool Controller::createRunTask(Robot *robot, const std::vector<double> &q, TaskSpace plannerTaskSpace)
 {
     if (pControllerState->controllerStatus != RunStatus::wait_)
@@ -53,6 +54,49 @@ bool Controller::createRunTask(Robot *robot, const std::vector<double> &q, TaskS
     }
     pControllerCommand->runSign = true;
     return true;
+}
+void Controller::stopRun()
+{
+    if (pControllerState->controllerStatus != RunStatus::run_)
+    {
+        wdlog_w("Controller", "机器人未运动，停止失败\n");
+        return;
+    }
+    if (pControllerCommand->stopSign)
+    {
+        wdlog_e("Controller", "stopSign信号未清，创建运行任务失败\n");
+        return;
+    }
+    pControllerCommand->stopSign = true;
+}
+
+// jog
+void Controller::startJogMove(int jogNum, int dir)
+{
+    wdlog_d("Controller", "startJogMove %d  %d\n", jogNum, dir);
+    pControllerCommand->jogSign = true;
+    pControllerCommand->jogNum = jogNum;
+    pControllerCommand->jogDir = dir;
+}
+void Controller::stopJogMove()
+{
+    wdlog_d("Controller", "stopJogMove \n");
+    pControllerCommand->jogSign = false;
+}
+void Controller::resetJogTimeOut()
+{
+    this->jogTimeCount = 0;
+}
+void Controller::jogCheckTimeOut()
+{
+    if (!pControllerCommand->jogSign)
+        return;
+    this->jogTimeCount++;
+    if (this->jogTimeCount > 100)
+    {
+        this->jogTimeCount = 0;
+        this->stopJogMove();
+    }
 }
 
 // controller
@@ -85,21 +129,6 @@ bool Controller::changePlanner(PlannerType type)
 PlannerType Controller::getPlanner()
 {
     return pControllerCommand->plannerType_d;
-}
-
-void Controller::stopRun()
-{
-    if (pControllerState->controllerStatus != RunStatus::run_)
-    {
-        wdlog_w("Controller", "机器人未运动，停止失败\n");
-        return;
-    }
-    if (pControllerCommand->stopSign)
-    {
-        wdlog_e("Controller", "stopSign信号未清，创建运行任务失败\n");
-        return;
-    }
-    pControllerCommand->stopSign = true;
 }
 
 // speed

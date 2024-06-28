@@ -26,3 +26,10 @@
 
 #define Request_CreateRunTask 1121
 #define Response_CreateRunTask 1122
+
+#define Request_JogMove 1200
+#define Response_JogMove 1201
+#define Request_JogCycleMove 1202
+
+#define Request_JogStop 1205
+#define Response_JogStop 1206
