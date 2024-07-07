@@ -71,9 +71,13 @@ void Controller::stopRun()
 }
 
 // jog
-void Controller::startJogMove(int jogNum, int dir)
+void Controller::startJogMove(int jogNum, int dir, TaskSpace type)
 {
-    wdlog_d("Controller", "startJogMove %d  %d\n", jogNum, dir);
+    if (!this->changeSpace(type))
+    {
+        wdlog_w("Controller", "机器人不处于停止状态，点动失败\n");
+        return;
+    }
     pControllerCommand->jogSign = true;
     pControllerCommand->jogNum = jogNum;
     pControllerCommand->jogDir = dir;
@@ -104,9 +108,12 @@ bool Controller::changeControllerLaw(ControllerLawType type)
 {
     if (pControllerState->controllerStatus != RunStatus::wait_)
     {
-        wdlog_w("Controller", "机器人运动中，切换控制律失败\n");
+        wdlog_w("Controller", "机器人不处于停止状态，切换控制律失败\n");
         return false;
     }
+    Json::Value root;
+    root["controlLaw"] = (int)type;
+    setConfigParam(ControllerJsonPath, root);
     pControllerCommand->controllerLawType_d = type;
     return true;
 }
@@ -120,15 +127,36 @@ bool Controller::changePlanner(PlannerType type)
 {
     if (pControllerState->controllerStatus != RunStatus::wait_)
     {
-        wdlog_w("Controller", "机器人运动中，切换规划器失败\n");
+        wdlog_w("Controller", "机器人不处于停止状态，切换规划器失败\n");
         return false;
     }
+    Json::Value root;
+    root["planner"] = (int)type;
+    setConfigParam(ControllerJsonPath, root);
     pControllerCommand->plannerType_d = type;
     return true;
 }
 PlannerType Controller::getPlanner()
 {
     return pControllerCommand->plannerType_d;
+}
+
+bool Controller::changeSpace(TaskSpace type)
+{
+    if (pControllerState->controllerStatus != RunStatus::wait_)
+    {
+        wdlog_w("Controller", "机器人不处于停止状态，切换坐标系失败\n");
+        return false;
+    }
+    Json::Value root;
+    root["space"] = (int)type;
+    setConfigParam(ControllerJsonPath, root);
+    pControllerCommand->plannerTaskSpace = type;
+    return true;
+}
+TaskSpace Controller::getSpace()
+{
+    return pControllerCommand->plannerTaskSpace;
 }
 
 // speed

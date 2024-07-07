@@ -84,6 +84,9 @@ void initControllerParam()
     setJsonValueToFile(ControllerJsonPath, root);
     controller->setJogSpeed(root["jogspeed"].asInt());
     controller->setRunSpeed(root["runSpeed"].asInt());
+    controller->changeControllerLaw((ControllerLawType)root["controlLaw"].asInt());
+    controller->changePlanner((PlannerType)root["planner"].asInt());
+    controller->changeSpace((TaskSpace)root["space"].asInt());
 }
 
 /*--------------------------------------------------startIPC--------------------------------------------------*/

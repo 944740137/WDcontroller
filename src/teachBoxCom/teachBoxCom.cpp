@@ -36,9 +36,7 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
     Json::Reader reader;
     Json::Value recvObj;
     std::string str;
-
     Json::Value sendObj;
-
     switch (tcpRecvMessage.commandNum)
     {
         // 更换控制器
@@ -58,7 +56,7 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
             sendObj["controlLaw"] = (int)controller->getControllerLaw();
             sendObj["result"] = false;
             sendObj["error"] = "change control law error";
-            // wdlog_d("cmdParsing", "Request_ChangeController error\n");
+            wdlog_w("cmdParsing", "Request_ChangeController error\n");
         }
         sendToTeachBox(Response_ChangeController, cfd, sendObj);
         break;
@@ -84,7 +82,6 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         break;
         // 询问从站状态
     case Ask_SlaveConnect:
-        // 没有buf
         sendObj["connect"] = controller->connect;
         sendToTeachBox(Response_SlaveConnect, cfd, sendObj);
         break;
@@ -94,6 +91,7 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         sendObj["connect"] = controller->connect;
         sendObj["planner"] = (int)controller->getPlanner();
         sendObj["controlLaw"] = (int)controller->getControllerLaw();
+        sendObj["space"] = (int)controller->getSpace();
         sendObj["runSpeed"] = controller->getRunSpeed();
         sendObj["jogspeed"] = controller->getJogSpeed();
         sendToTeachBox(Response_Start, cfd, sendObj);
@@ -102,7 +100,7 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
     case Request_ChangeVel:
         str = tcpRecvMessage.buf;
         if (reader.parse(str, recvObj))
-            wdlog_d("cmdParsing", "Request_ChangeVel \n");
+            wdlog_i("cmdParsing", "Request_ChangeVel \n");
         else
             wdlog_e("cmdParsing", "Request_ChangeVel error\n");
         controller->setRunSpeed(recvObj["runSpeed"].asInt());
@@ -112,7 +110,6 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         break;
         // 回零
     case Request_BackToZero:
-        // str = tcpRecvMessage.buf;
         sendObj["result"] = true;
         controller->backToZero(robot);
         sendToTeachBox(Response_BackToZero, cfd, sendObj);
@@ -121,7 +118,7 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
     case Request_CreateRunTask:
         str = tcpRecvMessage.buf;
         if (reader.parse(str, recvObj))
-            wdlog_d("cmdParsing", "Request_CreateRunTask \n");
+            wdlog_i("cmdParsing", "Request_CreateRunTask \n");
         else
             wdlog_e("cmdParsing", "Request_CreateRunTask error\n");
         if (recvObj["planType"].asInt() == 0)
@@ -147,14 +144,12 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         break;
         // 停止
     case Request_StopMove:
-        // str = tcpRecvMessage.buf;
         sendObj["result"] = true;
         controller->stopRun();
         sendToTeachBox(Response_StopMove, cfd, sendObj);
         break;
         // 询问位置
     case Ask_Position:
-        // str = tcpRecvMessage.buf;
         for (int i = 1; i <= robot->getRobotDof(); i++)
             sendObj["q"][i - 1] = robot->getpRobotJointPosition(i, false);
         for (int i = 1; i <= 6; i++)
@@ -166,24 +161,42 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
     case Request_JogMove:
         str = tcpRecvMessage.buf;
         if (reader.parse(str, recvObj))
-            wdlog_d("cmdParsing", "Request_JogMove \n");
+            wdlog_i("cmdParsing", "Request_JogMove \n");
         else
             wdlog_e("cmdParsing", "Request_JogMove error\n");
-        controller->startJogMove(recvObj["joint"].asInt(), recvObj["dir"].asInt());
+        controller->startJogMove(recvObj["joint"].asInt(), recvObj["dir"].asInt(), (TaskSpace)recvObj["space"].asInt()); // joint cart
         sendObj["result"] = true;
         sendToTeachBox(Response_JogMove, cfd, sendObj);
         break;
         // 点动结束
     case Request_JogStop:
-        // str = tcpRecvMessage.buf;
         controller->stopJogMove();
         sendObj["result"] = true;
         sendToTeachBox(Response_JogStop, cfd, sendObj);
         break;
-        // 点动结束
+        // 点动检测
     case Request_JogCycleMove:
-        // str = tcpRecvMessage.buf;
         controller->resetJogTimeOut();
+        break;
+        // 切换坐标系
+    case Request_ChangeSpace:
+        str = tcpRecvMessage.buf;
+        if (reader.parse(str, recvObj))
+            wdlog_i("cmdParsing", "Request_ChangeSpace %d\n", recvObj["space"].asInt());
+        else
+            wdlog_e("cmdParsing", "Request_ChangeSpace error\n");
+        if (controller->changeSpace((TaskSpace)recvObj["space"].asInt()))
+        {
+            sendObj["space"] = (int)controller->getSpace();
+            sendObj["result"] = true;
+        }
+        else
+        {
+            sendObj["space"] = (int)controller->getSpace();
+            sendObj["result"] = false;
+            sendObj["error"] = "change space error";
+        }
+        sendToTeachBox(Response_ChangeSpace, cfd, sendObj);
         break;
     default:
         wdlog_e("cmdParsing", "parse error commandNum %d\n", tcpRecvMessage.commandNum);
@@ -197,7 +210,6 @@ void teachBoxCommunication(const int &lfd)
     static struct sockaddr_in clientAddr;
     static socklen_t clientAddrLen = sizeof(clientAddr);
     static TcpMessage tcpRecvMessage;
-    // wdlog_d("teachBoxComTask", "---------\n");
 
     if (cfd == 0 || cfd == -1)
     {
