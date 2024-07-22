@@ -135,10 +135,10 @@ void cmdParsing(const TcpMessage &tcpRecvMessage, const int &cfd)
         {
             std::vector<double> x = {recvObj["x_d"][0].asDouble(), recvObj["x_d"][1].asDouble(), recvObj["x_d"][2].asDouble(),
                                      recvObj["x_d"][3].asDouble(), recvObj["x_d"][4].asDouble(), recvObj["x_d"][5].asDouble()};
-            // if (controller->createRunTask(robot, x, TaskSpace::cartesianSpace))
-            //     sendObj["result"] = true;
-            // else
-            //     sendObj["result"] = false;
+            if (controller->createRunTask(robot, x, TaskSpace::cartesianSpace))
+                sendObj["result"] = true;
+            else
+                sendObj["result"] = false;
         }
         sendToTeachBox(Response_CreateRunTask, cfd, sendObj);
         break;

@@ -39,20 +39,30 @@ bool Controller::createRunTask(Robot *robot, const std::vector<double> &q, TaskS
         wdlog_e("Controller", "runSign信号未清，创建运行任务失败\n");
         return false;
     }
-
-    if (!this->checkUserJointLimit(robot, q))
+    if (plannerTaskSpace == TaskSpace::jointSpace)
     {
-        wdlog_e("Controller", "目标位置超限:%f, %f, %f,%f,%f,%f,%f\n",
-                q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
-        return false;
+        if (!this->checkUserJointLimit(robot, q))
+        {
+            wdlog_e("Controller", "目标位置超限:%f, %f, %f,%f,%f,%f,%f\n",
+                    q[0], q[1], q[2], q[3], q[4], q[5], q[6]);
+            return false;
+        }
+        pControllerCommand->plannerTaskSpace = plannerTaskSpace;
+        for (int i = 0; i < q.size(); i++)
+        {
+            pControllerCommand->q_final[i] = q[i] + robot->getUserZeroPosition()[i];
+        }
+        pControllerCommand->runSign = true;
     }
-
-    pControllerCommand->plannerTaskSpace = plannerTaskSpace;
-    for (int i = 0; i < q.size(); i++)
+    else if (plannerTaskSpace == TaskSpace::cartesianSpace)
     {
-        pControllerCommand->q_final[i] = q[i] + robot->getUserZeroPosition()[i];
+        pControllerCommand->plannerTaskSpace = plannerTaskSpace;
+        for (int i = 0; i < q.size(); i++)
+        {
+            pControllerCommand->x_final[i] = q[i];
+        }
+        pControllerCommand->runSign = true;
     }
-    pControllerCommand->runSign = true;
     return true;
 }
 void Controller::stopRun()
